@@ -1,0 +1,24 @@
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build files
+dist/
+**/dist/
+
+# Environment variables and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Allow safe example environment files
+!.env.example
+!**/.env.example
+
+# Logs
+*.log
+
+# System files
+.DS_Store
