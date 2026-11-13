@@ -2,6 +2,7 @@
 const express = require('express')
 const router = express.Router()
 const mongoose = require('mongoose')
+const protectAdmin = require('../middleware/authMiddleware')
 
 const Order = require('../models/Order')
 const Product = require('../models/Product')
@@ -122,6 +123,69 @@ router.post('/', async (req, res) => {
 
   } finally {
     await session.endSession()
+  }
+})
+
+// Get all orders (Admin only)
+router.get('/', protectAdmin, async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+
+    res.json({
+      count: orders.length,
+      orders
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to fetch orders',
+      error: error.message
+    })
+  }
+})
+
+// Update order status (Admin only)
+router.patch('/:id/status', protectAdmin, async (req, res) => {
+  try {
+    const { status } = req.body
+
+    const allowedStatuses = [
+      'Pending',
+      'Confirmed',
+      'Shipped',
+      'Delivered',
+      'Cancelled'
+    ]
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        message: 'Invalid order status'
+      })
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    )
+
+    if (!order) {
+      return res.status(404).json({
+        message: 'Order not found'
+      })
+    }
+
+    res.json({
+      message: 'Order status updated successfully',
+      order
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to update order status',
+      error: error.message
+    })
   }
 })
 
