@@ -105,6 +105,22 @@
   border-radius: 6px;
   cursor: pointer;
 }
+.logout-button {
+  padding: 10px 20px;
+  background: transparent;
+  color: #d4af37;
+  border: 1px solid #9c7b22;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-button:hover {
+  background: #d4af37;
+  color: #111;
+}
+
+
 
 /* Responsive */
 @media (max-width: 700px) {

@@ -6,6 +6,11 @@ function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const handleLogout = () => {
+  sessionStorage.removeItem('adminToken')
+  window.location.href = '/admin/login'
+}
+
 
   // Fetch orders from backend
   useEffect(() => {
@@ -77,11 +82,15 @@ function AdminDashboard() {
 
       {/* Header */}
       <header className="dashboard-header">
-        <div>
-          <h1>ABU BADR PARFUM</h1>
-          <p>Administration Dashboard</p>
-        </div>
-      </header>
+  <div>
+    <h1>ABU BADR PARFUM</h1>
+    <p>Administration Dashboard</p>
+  </div>
+
+  <button className="logout-button" onClick={handleLogout}>
+    Logout
+  </button>
+</header>
 
       {/* Statistics */}
       <section className="dashboard-stats">
