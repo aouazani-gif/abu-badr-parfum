@@ -17,6 +17,7 @@ app.use(express.json())
 // Import routes
 const productRoutes = require('./routes/productRoutes')
 const orderRoutes = require('./routes/orderRoutes')
+const adminRoutes = require('./routes/adminRoutes')
 
 // Main route
 app.get('/', (req, res) => {
@@ -24,8 +25,10 @@ app.get('/', (req, res) => {
 })
 
 // API routes
+
 app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)
+app.use('/api/admin', adminRoutes)
 
 const PORT = process.env.PORT || 5000
 
