@@ -36,17 +36,16 @@ function Shop() {
       })
   }, [])
 
-  // Show all products returned by the API
   const availableProducts = products
 
-  // Filter products using search term
+  // Filter products
   const filteredProducts = availableProducts.filter(product =>
     `${product.name} ${product.category}`
       .toLowerCase()
       .includes(searchTerm.trim().toLowerCase())
   )
 
-  // Sort filtered products
+  // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortOption) {
       case 'price-low':
@@ -91,7 +90,7 @@ function Shop() {
     })
   }
 
-  // Update quantity without exceeding available stock
+  // Update cart quantity
   function updateQuantity(id, amount) {
     setCart(currentCart =>
       currentCart
@@ -129,7 +128,7 @@ function Shop() {
     0
   )
 
-  // Submit order to backend
+  // Submit order
   async function handlePlaceOrder(orderData) {
     setIsSubmitting(true)
     setOrderError('')
@@ -207,7 +206,7 @@ function Shop() {
         <p className="subtitle">OUR SELECTION</p>
         <h2>Featured Fragrances</h2>
 
-        {/* Search Bar */}
+        {/* Search */}
         <div className="product-search">
           <input
             type="text"
@@ -270,12 +269,33 @@ function Shop() {
 
                 return (
                   <div className="product-card" key={product.id}>
-                    <div
-                      className={`product-image bottle-${(index % 4) + 1}`}
-                    >
-                      <div className="bottle-shape">
-                        <span>AB</span>
-                      </div>
+
+                    {/* Real Product Image */}
+                    <div className={`product-image bottle-${(index % 4) + 1}`}>
+                      {product.image ? (
+                        <>
+                          <img
+                            className="product-photo"
+                            src={product.image}
+                            alt={product.name}
+                            onError={event => {
+                              event.currentTarget.style.display = 'none'
+                              event.currentTarget.nextElementSibling.style.display = 'flex'
+                            }}
+                          />
+
+                          <div
+                            className="bottle-shape product-image-fallback"
+                            style={{ display: 'none' }}
+                          >
+                            <span>AB</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="bottle-shape">
+                          <span>AB</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="product-info">
@@ -284,7 +304,7 @@ function Shop() {
                       <h3>{product.name}</h3>
 
                       <span className="price">
-                        {product.price.toLocaleString()} DZD
+                        {Number(product.price).toLocaleString()} DZD
                       </span>
 
                       <button
@@ -320,14 +340,14 @@ function Shop() {
         )}
       </section>
 
-      {/* Product Details Popup */}
+      {/* Product Details */}
       <ProductDetails
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={addToCart}
       />
 
-      {/* Cart Section */}
+      {/* Cart */}
       <section className="cart-section" id="cart">
         <p className="subtitle">YOUR SELECTION</p>
         <h2>Shopping Cart</h2>
@@ -344,7 +364,7 @@ function Shop() {
                   <h3>{item.name}</h3>
 
                   <p>
-                    {item.price.toLocaleString()} DZD
+                    {Number(item.price).toLocaleString()} DZD
                   </p>
                 </div>
 
@@ -385,7 +405,7 @@ function Shop() {
         )}
       </section>
 
-      {/* Checkout Section */}
+      {/* Checkout */}
       {orderPlaced ? (
         <section className="order-success">
           <h2>Thank you for your order!</h2>

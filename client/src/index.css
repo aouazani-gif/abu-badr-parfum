@@ -136,7 +136,30 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  position: relative;
 }
+
+/* Real product images */
+
+.product-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 15px;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.product-card:hover .product-photo {
+  transform: scale(1.06);
+}
+
+.product-image-fallback {
+  display: flex;
+}
+
+/* Placeholder bottles */
 
 .bottle-shape {
   width: 85px;
@@ -194,6 +217,7 @@ button {
 }
 
 .price {
+  display: block;
   color: #c9a45c;
   font-size: 19px;
   font-weight: bold;
@@ -366,9 +390,18 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
-.product-modal-image .bottle-shape {
+.product-modal-photo {
+  width: 100%;
+  height: 400px;
+  object-fit: contain;
+  padding: 25px;
+  display: block;
+}
+
+.product-modal-fallback {
   transform: scale(1.4);
 }
 
@@ -628,7 +661,11 @@ button {
     min-height: 220px;
   }
 
-  .product-modal-image .bottle-shape {
+  .product-modal-photo {
+    height: 220px;
+  }
+
+  .product-modal-fallback {
     transform: scale(0.85);
   }
 
