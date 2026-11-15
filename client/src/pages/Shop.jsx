@@ -7,6 +7,7 @@ function Shop() {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [sortOption, setSortOption] = useState('default')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [orderPlaced, setOrderPlaced] = useState(false)
@@ -42,6 +43,23 @@ function Shop() {
       .toLowerCase()
       .includes(searchTerm.trim().toLowerCase())
   )
+
+  // Sort filtered products
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortOption) {
+      case 'price-low':
+        return Number(a.price) - Number(b.price)
+
+      case 'price-high':
+        return Number(b.price) - Number(a.price)
+
+      case 'name':
+        return a.name.localeCompare(b.name)
+
+      default:
+        return 0
+    }
+  })
 
   // Add product to cart
   function addToCart(product) {
@@ -205,6 +223,24 @@ function Shop() {
           )}
         </div>
 
+        {/* Sorting */}
+        <div className="product-sorting">
+          <label htmlFor="sort-products">
+            Sort by:
+          </label>
+
+          <select
+            id="sort-products"
+            value={sortOption}
+            onChange={event => setSortOption(event.target.value)}
+          >
+            <option value="default">Default</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name">Name: A to Z</option>
+          </select>
+        </div>
+
         {loading && <p>Loading products...</p>}
 
         {error && (
@@ -212,7 +248,7 @@ function Shop() {
         )}
 
         {!loading && !error && (
-          filteredProducts.length === 0 ? (
+          sortedProducts.length === 0 ? (
             <p className="empty-cart">
               {searchTerm
                 ? 'No fragrances match your search.'
@@ -220,7 +256,7 @@ function Shop() {
             </p>
           ) : (
             <div className="products-grid">
-              {filteredProducts.map((product, index) => {
+              {sortedProducts.map((product, index) => {
                 const cartItem = cart.find(
                   item => item.id === product.id
                 )

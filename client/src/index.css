@@ -169,8 +169,6 @@
   color: #111;
 }
 
-/* Disabled Add to Cart Button */
-
 .add-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -235,6 +233,43 @@
 
 .product-search button:active {
   transform: scale(0.96);
+}
+
+/* =========================
+   PRODUCT SORTING
+========================= */
+
+.product-sorting {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: -15px auto 40px;
+}
+
+.product-sorting label {
+  color: #c9a45c;
+  font-size: 14px;
+}
+
+.product-sorting select {
+  padding: 12px 16px;
+  background: #151515;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.product-sorting select:focus {
+  border-color: #c9a45c;
+}
+
+.product-sorting option {
+  background: #151515;
+  color: white;
 }
 
 /* =========================
@@ -435,6 +470,15 @@
 
   .product-search button {
     padding: 13px;
+  }
+
+  .product-sorting {
+    flex-wrap: wrap;
+    margin: -10px auto 30px;
+  }
+
+  .product-sorting select {
+    max-width: 100%;
   }
 
   .hero h1 {
