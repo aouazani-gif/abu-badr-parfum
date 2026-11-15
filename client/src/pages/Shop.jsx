@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import Checkout from '../components/Checkout'
 
-function shop() {
+function Shop() {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
   const [loading, setLoading] = useState(true)
@@ -19,6 +19,7 @@ function shop() {
         if (!response.ok) {
           throw new Error('Failed to fetch products')
         }
+
         return response.json()
       })
       .then(data => {
@@ -31,14 +32,24 @@ function shop() {
       })
   }, [])
 
+  // Show all products returned by the API.
+  // Stock does not determine product visibility.
+  const availableProducts = products
+
   // Add product to cart
   function addToCart(product) {
+    if (Number(product.stock) <= 0) return
+
     setCart(currentCart => {
       const existing = currentCart.find(
         item => item.id === product.id
       )
 
       if (existing) {
+        if (existing.quantity >= Number(product.stock)) {
+          return currentCart
+        }
+
         return currentCart.map(item =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -46,19 +57,30 @@ function shop() {
         )
       }
 
-      return [...currentCart, { ...product, quantity: 1 }]
+      return [
+        ...currentCart,
+        { ...product, quantity: 1 }
+      ]
     })
   }
 
-  // Update quantity
+  // Update quantity without exceeding available stock
   function updateQuantity(id, amount) {
     setCart(currentCart =>
       currentCart
-        .map(item =>
-          item.id === id
-            ? { ...item, quantity: item.quantity + amount }
-            : item
-        )
+        .map(item => {
+          if (item.id !== id) return item
+
+          const newQuantity = item.quantity + amount
+
+          return {
+            ...item,
+            quantity: Math.min(
+              newQuantity,
+              Number(item.stock)
+            )
+          }
+        })
         .filter(item => item.quantity > 0)
     )
   }
@@ -71,37 +93,44 @@ function shop() {
   }
 
   const cartCount = cart.reduce(
-    (total, item) => total + item.quantity, 0
+    (total, item) => total + item.quantity,
+    0
   )
 
   const total = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity, 0
+    (sum, item) => sum + item.price * item.quantity,
+    0
   )
 
-  // Submit a real order to the backend
+  // Submit order to backend
   async function handlePlaceOrder(orderData) {
     setIsSubmitting(true)
     setOrderError('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          customer: orderData.customer,
-          products: orderData.products.map(item => ({
-            productId: item.id,
-            quantity: item.quantity
-          }))
-        })
-      })
+      const response = await fetch(
+        'http://localhost:5000/api/orders',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            customer: orderData.customer,
+            products: orderData.products.map(item => ({
+              productId: item.id,
+              quantity: item.quantity
+            }))
+          })
+        }
+      )
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to place order')
+        throw new Error(
+          data.message || 'Failed to place order'
+        )
       }
 
       setOrderPlaced(true)
@@ -118,10 +147,15 @@ function shop() {
     <>
       <Navbar cartCount={cartCount} />
 
+      {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
           <p className="subtitle">THE ART OF ELEGANCE</p>
-          <h1>YOUR SCENT.<br />YOUR IDENTITY.</h1>
+
+          <h1>
+            YOUR SCENT.<br />
+            YOUR IDENTITY.
+          </h1>
 
           <p className="description">
             Discover exclusive fragrances crafted
@@ -131,7 +165,7 @@ function shop() {
           <button
             className="shop-button"
             onClick={() =>
-              document.getElementById('products').scrollIntoView({
+              document.getElementById('products')?.scrollIntoView({
                 behavior: 'smooth'
               })
             }
@@ -141,68 +175,117 @@ function shop() {
         </div>
       </section>
 
+      {/* Products Section */}
       <section className="products-section" id="products">
         <p className="subtitle">OUR SELECTION</p>
         <h2>Featured Fragrances</h2>
 
         {loading && <p>Loading products...</p>}
 
-        {error && <p className="error-message">{error}</p>}
+        {error && (
+          <p className="error-message">{error}</p>
+        )}
 
         {!loading && !error && (
-          <div className="products-grid">
-            {products.map((product, index) => (
-              <div className="product-card" key={product.id}>
-                <div className={`product-image bottle-${(index % 4) + 1}`}>
-                  <div className="bottle-shape">
-                    <span>AB</span>
+          availableProducts.length === 0 ? (
+            <p className="empty-cart">
+              No fragrances are currently available.
+            </p>
+          ) : (
+            <div className="products-grid">
+              {availableProducts.map((product, index) => {
+                const cartItem = cart.find(
+                  item => item.id === product.id
+                )
+
+                const reachedStockLimit =
+                  cartItem &&
+                  cartItem.quantity >= Number(product.stock)
+
+                const outOfStock =
+                  Number(product.stock) <= 0
+
+                return (
+                  <div className="product-card" key={product.id}>
+                    <div
+                      className={`product-image bottle-${(index % 4) + 1}`}
+                    >
+                      <div className="bottle-shape">
+                        <span>AB</span>
+                      </div>
+                    </div>
+
+                    <div className="product-info">
+                      <p>{product.category}</p>
+
+                      <h3>{product.name}</h3>
+
+                      <span className="price">
+                        {product.price.toLocaleString()} DZD
+                      </span>
+
+                      
+                       {outOfStock && <p>OUT OF STOCK</p>}
+                      
+
+                      <button
+                        className="add-button"
+                        onClick={() => addToCart(product)}
+                        disabled={
+                          outOfStock || reachedStockLimit
+                        }
+                      >
+                        {outOfStock
+                          ? 'OUT OF STOCK'
+                          : reachedStockLimit
+                            ? 'MAXIMUM STOCK ADDED'
+                            : 'ADD TO CART'}
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                <div className="product-info">
-                  <p>{product.category}</p>
-                  <h3>{product.name}</h3>
-
-                  <span className="price">
-                    {product.price.toLocaleString()} DZD
-                  </span>
-
-                  <button
-                    className="add-button"
-                    onClick={() => addToCart(product)}
-                  >
-                    ADD TO CART
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                )
+              })}
+            </div>
+          )
         )}
       </section>
 
+      {/* Cart Section */}
       <section className="cart-section" id="cart">
         <p className="subtitle">YOUR SELECTION</p>
         <h2>Shopping Cart</h2>
 
         {cart.length === 0 ? (
-          <p className="empty-cart">Your cart is empty.</p>
+          <p className="empty-cart">
+            Your cart is empty.
+          </p>
         ) : (
           <>
             {cart.map(item => (
               <div className="cart-item" key={item.id}>
                 <div>
                   <h3>{item.name}</h3>
-                  <p>{item.price.toLocaleString()} DZD</p>
+
+                  <p>
+                    {item.price.toLocaleString()} DZD
+                  </p>
                 </div>
 
                 <div className="quantity-controls">
-                  <button onClick={() => updateQuantity(item.id, -1)}>
+                  <button
+                    onClick={() => updateQuantity(item.id, -1)}
+                  >
                     -
                   </button>
 
                   <span>{item.quantity}</span>
 
-                  <button onClick={() => updateQuantity(item.id, 1)}>
+                  <button
+                    onClick={() => updateQuantity(item.id, 1)}
+                    disabled={
+                      item.quantity >= Number(item.stock)
+                    }
+                  >
                     +
                   </button>
                 </div>
@@ -217,12 +300,15 @@ function shop() {
             ))}
 
             <div className="cart-total">
-              <h3>Total: {total.toLocaleString()} DZD</h3>
+              <h3>
+                Total: {total.toLocaleString()} DZD
+              </h3>
             </div>
           </>
         )}
       </section>
 
+      {/* Checkout Section */}
       {orderPlaced ? (
         <section className="order-success">
           <h2>Thank you for your order!</h2>
@@ -231,7 +317,9 @@ function shop() {
       ) : (
         <>
           {orderError && (
-            <p className="error-message">{orderError}</p>
+            <p className="error-message">
+              {orderError}
+            </p>
           )}
 
           <Checkout
@@ -246,4 +334,4 @@ function shop() {
   )
 }
 
-export default shop
+export default Shop
