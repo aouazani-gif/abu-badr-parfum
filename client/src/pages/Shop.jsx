@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import Checkout from '../components/Checkout'
+import ProductDetails from '../components/ProductDetails'
 
 function Shop() {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('default')
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [orderPlaced, setOrderPlaced] = useState(false)
@@ -215,9 +217,7 @@ function Shop() {
           />
 
           {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-            >
+            <button onClick={() => setSearchTerm('')}>
               Clear
             </button>
           )}
@@ -287,6 +287,13 @@ function Shop() {
                         {product.price.toLocaleString()} DZD
                       </span>
 
+                      <button
+                        className="details-button"
+                        onClick={() => setSelectedProduct(product)}
+                      >
+                        VIEW DETAILS
+                      </button>
+
                       {outOfStock && (
                         <p>OUT OF STOCK</p>
                       )}
@@ -312,6 +319,13 @@ function Shop() {
           )
         )}
       </section>
+
+      {/* Product Details Popup */}
+      <ProductDetails
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={addToCart}
+      />
 
       {/* Cart Section */}
       <section className="cart-section" id="cart">
