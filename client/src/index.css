@@ -1,4 +1,8 @@
 
+/* =========================
+   HERO SECTION
+========================= */
+
 .hero {
   min-height: 80vh;
   display: flex;
@@ -47,6 +51,10 @@
 .shop-button:hover {
   background: #e0c17e;
 }
+
+/* =========================
+   PRODUCTS SECTION
+========================= */
 
 .products-section {
   padding: 90px 7%;
@@ -161,21 +169,77 @@
   color: #111;
 }
 
-@media (max-width: 900px) {
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Disabled Add to Cart Button */
+
+.add-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: #777;
+  color: #999;
 }
 
-@media (max-width: 550px) {
-  .products-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .products-section h2 {
-    font-size: 28px;
-  }
+.add-button:disabled:hover {
+  background: transparent;
+  color: #999;
 }
+
+/* =========================
+   PRODUCT SEARCH
+========================= */
+
+.product-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+  margin: -15px auto 40px;
+}
+
+.product-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 15px 20px;
+  background: #151515;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 15px;
+  outline: none;
+  transition: 0.3s ease;
+}
+
+.product-search input::placeholder {
+  color: #888;
+}
+
+.product-search input:focus {
+  border-color: #c9a45c;
+  box-shadow: 0 0 12px #c9a45c33;
+}
+
+.product-search button {
+  padding: 15px 20px;
+  background: #c9a45c;
+  color: #111;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.product-search button:hover {
+  background: #e0c17e;
+}
+
+.product-search button:active {
+  transform: scale(0.96);
+}
+
+/* =========================
+   NAVIGATION
+========================= */
 
 .nav-links a {
   color: white;
@@ -186,6 +250,10 @@
 .nav-links a:hover {
   color: #c9a45c;
 }
+
+/* =========================
+   CART SECTION
+========================= */
 
 .cart-section {
   padding: 80px 8%;
@@ -245,11 +313,9 @@
   color: #c9a45c;
 }
 
-@media (max-width: 600px) {
-  .cart-item {
-    flex-wrap: wrap;
-  }
-}
+/* =========================
+   CHECKOUT SECTION
+========================= */
 
 .checkout-section {
   padding: 80px 8%;
@@ -327,4 +393,55 @@
 .order-success p {
   color: #aaa;
   margin-top: 15px;
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+@media (max-width: 900px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero h1 {
+    font-size: 50px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cart-item {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 550px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .products-section h2 {
+    font-size: 28px;
+  }
+
+  .product-search {
+    margin: -20px auto 30px;
+  }
+
+  .product-search input {
+    padding: 13px;
+    font-size: 14px;
+  }
+
+  .product-search button {
+    padding: 13px;
+  }
+
+  .hero h1 {
+    font-size: 38px;
+  }
+
+  .hero {
+    min-height: 65vh;
+  }
 }

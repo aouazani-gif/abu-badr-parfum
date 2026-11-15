@@ -6,6 +6,7 @@ import Checkout from '../components/Checkout'
 function Shop() {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [orderPlaced, setOrderPlaced] = useState(false)
@@ -32,9 +33,15 @@ function Shop() {
       })
   }, [])
 
-  // Show all products returned by the API.
-  // Stock does not determine product visibility.
+  // Show all products returned by the API
   const availableProducts = products
+
+  // Filter products using search term
+  const filteredProducts = availableProducts.filter(product =>
+    `${product.name} ${product.category}`
+      .toLowerCase()
+      .includes(searchTerm.trim().toLowerCase())
+  )
 
   // Add product to cart
   function addToCart(product) {
@@ -180,6 +187,24 @@ function Shop() {
         <p className="subtitle">OUR SELECTION</p>
         <h2>Featured Fragrances</h2>
 
+        {/* Search Bar */}
+        <div className="product-search">
+          <input
+            type="text"
+            placeholder="Search for a fragrance..."
+            value={searchTerm}
+            onChange={event => setSearchTerm(event.target.value)}
+          />
+
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
         {loading && <p>Loading products...</p>}
 
         {error && (
@@ -187,13 +212,15 @@ function Shop() {
         )}
 
         {!loading && !error && (
-          availableProducts.length === 0 ? (
+          filteredProducts.length === 0 ? (
             <p className="empty-cart">
-              No fragrances are currently available.
+              {searchTerm
+                ? 'No fragrances match your search.'
+                : 'No fragrances are currently available.'}
             </p>
           ) : (
             <div className="products-grid">
-              {availableProducts.map((product, index) => {
+              {filteredProducts.map((product, index) => {
                 const cartItem = cart.find(
                   item => item.id === product.id
                 )
@@ -224,9 +251,9 @@ function Shop() {
                         {product.price.toLocaleString()} DZD
                       </span>
 
-                      
-                       {outOfStock && <p>OUT OF STOCK</p>}
-                      
+                      {outOfStock && (
+                        <p>OUT OF STOCK</p>
+                      )}
 
                       <button
                         className="add-button"
