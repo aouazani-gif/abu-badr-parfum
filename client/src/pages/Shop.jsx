@@ -62,17 +62,27 @@ function Shop() {
     }
   })
 
-  // Add product to cart
+  // Add product to cart with stock validation
   function addToCart(product) {
-    if (Number(product.stock) <= 0) return
+    const stock = Number(product.stock)
+
+    if (stock <= 0) return false
+
+    const existing = cart.find(
+      item => item.id === product.id
+    )
+
+    if (existing && existing.quantity >= stock) {
+      return false
+    }
 
     setCart(currentCart => {
-      const existing = currentCart.find(
+      const currentItem = currentCart.find(
         item => item.id === product.id
       )
 
-      if (existing) {
-        if (existing.quantity >= Number(product.stock)) {
+      if (currentItem) {
+        if (currentItem.quantity >= stock) {
           return currentCart
         }
 
@@ -88,6 +98,8 @@ function Shop() {
         { ...product, quantity: 1 }
       ]
     })
+
+    return true
   }
 
   // Update cart quantity
@@ -118,11 +130,13 @@ function Shop() {
     )
   }
 
+  // Cart item count
   const cartCount = cart.reduce(
     (total, item) => total + item.quantity,
     0
   )
 
+  // Cart total
   const total = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -345,6 +359,7 @@ function Shop() {
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={addToCart}
+        cart={cart}
       />
 
       {/* Cart */}
