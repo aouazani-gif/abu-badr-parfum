@@ -27,6 +27,19 @@ router.get('/', async (req, res) => {
     })
   }
 })
+// Get all products for admin (including unavailable products)
+router.get('/admin/all', protectAdmin, async (req, res) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 })
+    res.json(products)
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to fetch all products',
+      error: error.message
+    })
+  }
+})
+
 
 // POST: Create a product (Admin only)
 router.post('/', protectAdmin, async (req, res) => {

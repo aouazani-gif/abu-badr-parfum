@@ -5,6 +5,7 @@ function Products() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [togglingId, setTogglingId] = useState(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [editingId, setEditingId] = useState(null)
@@ -20,13 +21,20 @@ function Products() {
 
   const [form, setForm] = useState(emptyForm)
 
-  // Fetch products
+  // Fetch all products for admin
   const fetchProducts = async () => {
     try {
       setError('')
 
+      const token = sessionStorage.getItem('adminToken')
+
       const response = await fetch(
-        'http://localhost:5000/api/products'
+        'http://localhost:5000/api/products/admin/all',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
 
       const data = await response.json()
@@ -35,7 +43,12 @@ function Products() {
         throw new Error(data.message || 'Failed to fetch products')
       }
 
-      setProducts(data)
+      setProducts(
+        data.map(product => ({
+          ...product,
+          id: product.id || product._id
+        }))
+      )
     } catch (error) {
       setError(error.message)
     } finally {
@@ -180,13 +193,58 @@ function Products() {
     }
   }
 
+  // Show or hide product in public shop
+  const handleToggleAvailability = async (product) => {
+    setTogglingId(product.id)
+    setError('')
+    setSuccess('')
+
+    try {
+      const token = sessionStorage.getItem('adminToken')
+
+      const response = await fetch(
+        `http://localhost:5000/api/products/${product.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            isAvailable: !product.isAvailable
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Failed to update product visibility'
+        )
+      }
+
+      setSuccess(
+        product.isAvailable
+          ? 'Product hidden from shop!'
+          : 'Product listed in shop!'
+      )
+
+      await fetchProducts()
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   return (
     <div style={styles.page}>
 
       <header style={styles.header}>
         <div>
           <h1 style={styles.brand}>ABU BADR PARFUM</h1>
-          <p style={styles.subtitle}>Product Management</p>
+          <p style={styles.subtitle}>PRODUCT MANAGEMENT</p>
         </div>
 
         <button
@@ -304,6 +362,7 @@ function Products() {
 
         <div style={styles.listHeader}>
           <h2 style={styles.sectionTitle}>Existing Products</h2>
+
           <span style={styles.count}>
             {products.length} Products
           </span>
@@ -335,6 +394,28 @@ function Products() {
                 <p>Category: {product.category}</p>
                 <p>Stock: {product.stock}</p>
 
+                {/* Visibility status */}
+                <p style={{
+                  color: product.isAvailable
+                    ? '#4caf50'
+                    : '#ff5555',
+                  fontWeight: 'bold'
+                }}>
+                  {product.isAvailable ? 'Listed' : 'Hidden'}
+                </p>
+
+                {/* Stock status */}
+                <p style={{
+                  color: Number(product.stock) > 0
+                    ? '#4caf50'
+                    : '#ff5555',
+                  fontWeight: 'bold'
+                }}>
+                  {Number(product.stock) > 0
+                    ? 'In stock'
+                    : 'Out of stock'}
+                </p>
+
                 <p style={styles.description}>
                   {product.description || 'No description'}
                 </p>
@@ -358,6 +439,24 @@ function Products() {
                   </button>
 
                 </div>
+
+                {/* Visibility toggle */}
+                <button
+                  style={{
+                    ...styles.toggleButton,
+                    background: product.isAvailable
+                      ? '#555'
+                      : '#267a45'
+                  }}
+                  disabled={togglingId === product.id}
+                  onClick={() => handleToggleAvailability(product)}
+                >
+                  {togglingId === product.id
+                    ? 'Updating...'
+                    : product.isAvailable
+                      ? 'Hide from shop'
+                      : 'Show in shop'}
+                </button>
 
               </div>
             ))}
@@ -515,6 +614,16 @@ const styles = {
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer'
+  },
+  toggleButton: {
+    width: '100%',
+    marginTop: '12px',
+    padding: '11px',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontWeight: 'bold'
   }
 }
 
