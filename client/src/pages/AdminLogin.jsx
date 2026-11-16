@@ -13,7 +13,7 @@ function AdminLogin() {
     setLoading(true)
 
     try {
-      const response = await fetch('http://abu-badr-parfum-2.onrender.com/api/admin/login', {
+      const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
