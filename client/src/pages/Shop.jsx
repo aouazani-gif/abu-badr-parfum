@@ -74,13 +74,10 @@ function Shop() {
     switch (sortOption) {
       case 'price-low':
         return Number(a.price30ml) - Number(b.price30ml)
-
       case 'price-high':
         return Number(b.price30ml) - Number(a.price30ml)
-
       case 'name':
         return a.name.localeCompare(b.name)
-
       default:
         return 0
     }
@@ -155,17 +152,12 @@ function Shop() {
       Number(item.stockMl) - otherSizesUsed
     )
 
-    const maxQuantity = Math.floor(
-      availableForThisSize / sizeMl
-    )
+    const maxQuantity = Math.floor(availableForThisSize / sizeMl)
 
     setCart(currentCart =>
       currentCart
         .map(cartItem => {
-          if (
-            cartItem.id !== id ||
-            cartItem.sizeMl !== sizeMl
-          ) {
+          if (cartItem.id !== id || cartItem.sizeMl !== sizeMl) {
             return cartItem
           }
 
@@ -234,37 +226,79 @@ function Shop() {
     }
   }
 
+  function exploreCollection() {
+    document.getElementById('products')?.scrollIntoView({
+      behavior: 'smooth'
+    })
+  }
+
   return (
     <>
       <Navbar cartCount={cartCount} />
 
-      <section className="hero">
+      {/* LUXURY HERO */}
+      <section className="luxury-hero">
         <div className="hero-content">
-          <p className="subtitle">THE ART OF ELEGANCE</p>
+          <p className="hero-eyebrow">
+            <span></span>
+            THE ART OF ELEGANCE
+            <span></span>
+          </p>
 
           <h1>
-            YOUR SCENT.<br />
-            YOUR IDENTITY.
+            YOUR SCENT.
+            <br />
+            <span>YOUR IDENTITY.</span>
           </h1>
 
-          <p className="description">
+          <p className="hero-description">
             Discover exclusive fragrances crafted
+            <br className="desktop-break" />
             for men who leave a lasting impression.
           </p>
 
           <button
-            className="shop-button"
-            onClick={() =>
-              document.getElementById('products')?.scrollIntoView({
-                behavior: 'smooth'
-              })
-            }
+            className="hero-cta"
+            onClick={exploreCollection}
           >
             EXPLORE COLLECTION
+            <span>→</span>
           </button>
+        </div>
+
+        <div className="hero-visual">
+          <img
+            src="/images/abu-badr-hero-perfume.jpg"
+            alt="Abu Badr luxury perfume bottle surrounded by golden smoke"
+          />
+        </div>
+
+        <div className="hero-bottom-glow"></div>
+      </section>
+
+      {/* BENEFITS STRIP */}
+      <section className="hero-benefits">
+        <div className="benefit-item">
+          <span className="benefit-icon">◇</span>
+          <span>PREMIUM QUALITY</span>
+        </div>
+
+        <div className="benefit-divider"></div>
+
+        <div className="benefit-item">
+          <span className="benefit-icon">♢</span>
+          <span>SECURE SHOPPING</span>
+        </div>
+
+        <div className="benefit-divider"></div>
+
+        <div className="benefit-item">
+          <span className="benefit-icon">⇢</span>
+          <span>FAST DELIVERY</span>
         </div>
       </section>
 
+      {/* PRODUCTS */}
       <section className="products-section" id="products">
         <p className="subtitle">OUR SELECTION</p>
         <h2>Featured Fragrances</h2>
@@ -417,6 +451,7 @@ function Shop() {
                               <span style={{ display: 'block' }}>
                                 {size} ml
                               </span>
+
                               <span
                                 style={{
                                   display: 'block',
@@ -450,9 +485,7 @@ function Shop() {
                       {outOfStock && <p>OUT OF STOCK</p>}
 
                       {!outOfStock && (
-                        <p>
-                          Available mixture: {remainingMl} ml
-                        </p>
+                        <p>Available mixture: {remainingMl} ml</p>
                       )}
 
                       <button
@@ -486,6 +519,7 @@ function Shop() {
         cart={cart}
       />
 
+      {/* CART */}
       <section className="cart-section" id="cart">
         <p className="subtitle">YOUR SELECTION</p>
         <h2>Shopping Cart</h2>
@@ -558,6 +592,7 @@ function Shop() {
         )}
       </section>
 
+      {/* CHECKOUT */}
       {orderPlaced ? (
         <section className="order-success">
           <h2>Thank you for your order!</h2>

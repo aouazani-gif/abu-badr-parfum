@@ -30,7 +30,7 @@ body {
   min-height: 100vh;
   background: var(--black);
   color: var(--text);
-  font-family: Arial, sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
   overflow-x: hidden;
   isolation: isolate;
   position: relative;
@@ -40,7 +40,7 @@ button,
 input,
 select,
 textarea {
-  font-family: inherit;
+  font-family: Arial, sans-serif;
 }
 
 button {
@@ -160,12 +160,29 @@ body::after {
   align-items: center;
   gap: 25px;
 
-  background: rgba(8, 8, 8, 0.88);
+  background: rgba(8, 8, 8, 0.94);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
   border-bottom: 1px solid rgba(201, 164, 92, 0.25);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.logo {
+  color: var(--gold-light);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 27px;
+  letter-spacing: 3px;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.logo span {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 7px;
+  margin-top: 2px;
 }
 
 .nav-links {
@@ -205,58 +222,293 @@ body::after {
 }
 
 /* =========================
-   HERO
+   LUXURY HERO SECTION
 ========================= */
 
-.hero {
-  min-height: 80vh;
+.luxury-hero {
+  min-height: 590px;
+  height: min(72vw, 650px);
+  max-height: 680px;
+
+  position: relative;
   display: flex;
   align-items: center;
-  padding: 80px 8%;
-  position: relative;
+
   overflow: hidden;
+  isolation: isolate;
+
+  padding: 65px 7%;
 
   background:
     radial-gradient(
-      ellipse at 75% 50%,
-      rgba(201, 164, 92, 0.13),
-      transparent 45%
+      ellipse at 75% 45%,
+      rgba(126, 76, 18, 0.20),
+      transparent 48%
     ),
-    linear-gradient(120deg, #080808 35%, #17120b 100%);
+    linear-gradient(
+      110deg,
+      #030303 0%,
+      #080704 55%,
+      #120b04 100%
+    );
 }
 
-.hero::before {
+/* Perfume image on the right */
+
+.hero-visual {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 61%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.hero-visual img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center center;
+
+  filter: brightness(0.95) contrast(1.08);
+
+  animation: perfumeReveal 1.4s ease both;
+}
+
+/* Fade image into the text background */
+
+.hero-visual::after {
   content: "";
   position: absolute;
-  width: 450px;
-  height: 450px;
-  right: -120px;
-  top: 10%;
+  inset: 0;
 
-  border-radius: 50%;
-  background: rgba(201, 164, 92, 0.13);
-  filter: blur(100px);
-  animation: heroGlow 7s ease-in-out infinite alternate;
-  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      #050505 0%,
+      rgba(5, 5, 5, 0.82) 8%,
+      rgba(5, 5, 5, 0.20) 35%,
+      transparent 65%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(5, 5, 5, 0.30),
+      transparent 30%,
+      transparent 75%,
+      rgba(5, 5, 5, 0.20)
+    );
 }
 
-@keyframes heroGlow {
+/* Text */
+
+.hero-content {
+  width: 58%;
+  max-width: 720px;
+  position: relative;
+  z-index: 2;
+
+  animation: heroTextReveal 1s ease both;
+}
+
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  color: var(--gold-light);
+  font-size: 16px;
+  letter-spacing: 5px;
+  margin-bottom: 24px;
+}
+
+.hero-eyebrow span {
+  width: 48px;
+  height: 1px;
+  background: var(--gold);
+  box-shadow: 0 0 10px var(--gold);
+}
+
+.luxury-hero h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: normal;
+
+  font-size: clamp(48px, 5.2vw, 78px);
+  line-height: 1.08;
+  letter-spacing: -2px;
+
+  color: #f4eee2;
+  margin-bottom: 22px;
+}
+
+.luxury-hero h1 span {
+  color: var(--gold-light);
+  background: linear-gradient(
+    90deg,
+    #fff0c5,
+    #d4a44c,
+    #f5d99a
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-description {
+  color: #e2ded5;
+  font-family: Georgia, 'Times New Roman', serif;
+
+  font-size: clamp(15px, 1.5vw, 21px);
+  line-height: 1.75;
+  margin-bottom: 34px;
+}
+
+/* Explore button */
+
+.hero-cta {
+  min-width: 280px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+
+  padding: 17px 30px;
+
+  color: var(--gold-light);
+  background: rgba(8, 8, 8, 0.55);
+
+  border: 1px solid var(--gold);
+  border-radius: 50px;
+
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+
+  box-shadow:
+    0 0 15px rgba(201, 164, 92, 0.12),
+    inset 0 0 12px rgba(201, 164, 92, 0.05);
+
+  transition: all 0.35s ease;
+}
+
+.hero-cta span {
+  font-size: 24px;
+  line-height: 0.7;
+  transition: transform 0.3s ease;
+}
+
+.hero-cta:hover {
+  color: #080808;
+  background: linear-gradient(
+    135deg,
+    var(--gold-light),
+    var(--gold)
+  );
+
+  box-shadow:
+    0 0 20px rgba(201, 164, 92, 0.35),
+    0 0 45px rgba(201, 164, 92, 0.15);
+
+  transform: translateY(-3px);
+}
+
+.hero-cta:hover span {
+  transform: translateX(5px);
+}
+
+/* Hero bottom lighting */
+
+.hero-bottom-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201, 164, 92, 0.7),
+    transparent
+  );
+
+  box-shadow: 0 0 15px rgba(201, 164, 92, 0.5);
+}
+
+/* Hero entrance animations */
+
+@keyframes heroTextReveal {
   from {
-    transform: scale(0.8);
-    opacity: 0.4;
+    opacity: 0;
+    transform: translateX(-35px);
   }
 
   to {
-    transform: scale(1.2);
-    opacity: 0.9;
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
-.hero-content {
-  max-width: 650px;
-  position: relative;
-  z-index: 1;
+@keyframes perfumeReveal {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
+
+/* =========================
+   HERO BENEFITS STRIP
+========================= */
+
+.hero-benefits {
+  min-height: 86px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+
+  padding: 18px 5%;
+
+  background: rgba(5, 5, 5, 0.94);
+  border-bottom: 1px solid rgba(201, 164, 92, 0.25);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  color: var(--gold-light);
+  font-size: 13px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.benefit-icon {
+  color: var(--gold);
+  font-size: 29px;
+  line-height: 1;
+}
+
+.benefit-divider {
+  height: 34px;
+  width: 1px;
+  background: rgba(201, 164, 92, 0.5);
+}
+
+/* =========================
+   GENERAL SECTION SUBTITLES
+========================= */
 
 .subtitle {
   color: var(--gold);
@@ -264,38 +516,7 @@ body::after {
   font-size: 13px;
   font-weight: bold;
   margin-bottom: 22px;
-}
-
-.hero h1 {
-  font-size: clamp(38px, 5vw, 64px);
-  line-height: 1.15;
-  margin-bottom: 25px;
-  letter-spacing: 1px;
-}
-
-.description {
-  color: #aaa;
-  line-height: 1.9;
-  font-size: 17px;
-  margin-bottom: 30px;
-  max-width: 550px;
-}
-
-.shop-button {
-  display: inline-block;
-  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
-  color: #080808;
-  padding: 15px 34px;
-  text-decoration: none;
-  font-weight: bold;
-  border: 1px solid var(--gold-light);
-  transition: 0.3s ease;
-  box-shadow: 0 5px 25px rgba(201, 164, 92, 0.15);
-}
-
-.shop-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(201, 164, 92, 0.35);
+  text-align: center;
 }
 
 /* =========================
@@ -303,17 +524,19 @@ body::after {
 ========================= */
 
 .products-section {
-  padding: 90px 8%;
+  padding: 75px 8% 90px;
   position: relative;
-  background: rgba(5, 5, 5, 0.18);
+  background: rgba(5, 5, 5, 0.35);
 }
 
 .products-section h2 {
   text-align: center;
-  font-size: clamp(28px, 4vw, 40px);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: normal;
   margin-bottom: 45px;
-  color: var(--gold-light);
-  letter-spacing: 2px;
+  color: #f2e8d7;
+  letter-spacing: 1px;
 }
 
 .products-grid {
@@ -796,21 +1019,25 @@ body::after {
   margin: 20px 0;
 }
 
+.error-message {
+  color: #ff7777;
+  text-align: center;
+  padding: 15px;
+}
+
+.empty-cart {
+  color: #aaa;
+  text-align: center;
+  padding: 25px;
+}
+
 /* =========================
-   RESPONSIVE DESIGN
+   TABLET RESPONSIVE
 ========================= */
 
 @media (max-width: 900px) {
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .hero h1 {
-    font-size: 46px;
-  }
-
-  .product-modal {
-    max-width: 700px;
   }
 
   .navbar {
@@ -820,7 +1047,51 @@ body::after {
   .nav-links {
     gap: 20px;
   }
+
+  .luxury-hero {
+    min-height: 540px;
+    height: 62vw;
+    padding: 55px 5%;
+  }
+
+  .hero-content {
+    width: 62%;
+  }
+
+  .luxury-hero h1 {
+    font-size: clamp(42px, 6vw, 58px);
+  }
+
+  .hero-visual {
+    width: 64%;
+  }
+
+  .hero-eyebrow {
+    font-size: 13px;
+    letter-spacing: 3px;
+    gap: 10px;
+  }
+
+  .hero-eyebrow span {
+    width: 30px;
+  }
+
+  .product-modal {
+    max-width: 700px;
+  }
+
+  .hero-benefits {
+    gap: 22px;
+  }
+
+  .benefit-item {
+    font-size: 11px;
+  }
 }
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
 
 @media (max-width: 600px) {
   .navbar {
@@ -829,12 +1100,22 @@ body::after {
     gap: 10px;
   }
 
+  .logo {
+    font-size: 19px;
+    letter-spacing: 2px;
+  }
+
+  .logo span {
+    font-size: 8px;
+    letter-spacing: 5px;
+  }
+
   .nav-links {
-    gap: 13px;
+    gap: 12px;
   }
 
   .nav-links a {
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0;
   }
 
@@ -842,22 +1123,105 @@ body::after {
     bottom: -5px;
   }
 
-  .hero {
-    min-height: 65vh;
-    padding: 55px 6%;
+  .luxury-hero {
+    min-height: 690px;
+    height: auto;
+    max-height: none;
+
+    align-items: flex-start;
+    padding: 65px 6% 300px;
   }
 
-  .hero h1 {
-    font-size: 36px;
+  .hero-content {
+    width: 100%;
+    max-width: 100%;
   }
 
-  .description {
-    font-size: 15px;
-  }
-
-  .subtitle {
+  .hero-eyebrow {
     font-size: 11px;
     letter-spacing: 3px;
+    margin-bottom: 20px;
+  }
+
+  .hero-eyebrow span {
+    width: 24px;
+  }
+
+  .luxury-hero h1 {
+    font-size: clamp(39px, 9vw, 52px);
+    line-height: 1.12;
+    letter-spacing: -1px;
+    margin-bottom: 18px;
+  }
+
+  .hero-description {
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 22px;
+  }
+
+  .desktop-break {
+    display: none;
+  }
+
+  .hero-cta {
+    min-width: 235px;
+    padding: 14px 22px;
+    font-size: 12px;
+  }
+
+  .hero-visual {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 360px;
+  }
+
+  .hero-visual img {
+    object-position: center center;
+  }
+
+  .hero-visual::after {
+    background:
+      linear-gradient(
+        180deg,
+        #050505 0%,
+        rgba(5, 5, 5, 0.45) 18%,
+        transparent 48%,
+        rgba(5, 5, 5, 0.12) 100%
+      ),
+      linear-gradient(
+        90deg,
+        rgba(5, 5, 5, 0.15),
+        transparent 40%,
+        rgba(5, 5, 5, 0.08)
+      );
+  }
+
+  .hero-benefits {
+    min-height: auto;
+    padding: 22px 12px;
+
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 17px;
+    justify-items: center;
+  }
+
+  .benefit-item {
+    font-size: 11px;
+    width: 180px;
+    justify-content: flex-start;
+  }
+
+  .benefit-icon {
+    font-size: 24px;
+  }
+
+  .benefit-divider {
+    width: 100px;
+    height: 1px;
   }
 
   .products-section {
@@ -935,6 +1299,38 @@ body::after {
 
   .product-modal-price {
     font-size: 22px;
+  }
+}
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 380px) {
+  .navbar {
+    padding-left: 3%;
+    padding-right: 3%;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .nav-links {
+    gap: 8px;
+  }
+
+  .nav-links a {
+    font-size: 9px;
+  }
+
+  .luxury-hero {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+  .luxury-hero h1 {
+    font-size: 36px;
   }
 }
 
