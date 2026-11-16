@@ -13,10 +13,12 @@ function Products() {
   const emptyForm = {
     name: '',
     description: '',
-    price: '',
+    price30ml: '',
+    price50ml: '',
+    price100ml: '',
     category: '',
     image: '',
-    stock: ''
+    stockMl: ''
   }
 
   const [form, setForm] = useState(emptyForm)
@@ -43,14 +45,20 @@ function Products() {
         throw new Error(data.message || 'Failed to fetch products')
       }
 
+      // Backend returns { count, products }
+      if (!Array.isArray(data.products)) {
+        throw new Error('Invalid products response from server')
+      }
+
       setProducts(
-        data.map(product => ({
+        data.products.map(product => ({
           ...product,
           id: product.id || product._id
         }))
       )
     } catch (error) {
       setError(error.message)
+      setProducts([])
     } finally {
       setLoading(false)
     }
@@ -81,8 +89,10 @@ function Products() {
 
       const productData = {
         ...form,
-        price: Number(form.price),
-        stock: Number(form.stock)
+        price30ml: Number(form.price30ml),
+        price50ml: Number(form.price50ml),
+        price100ml: Number(form.price100ml),
+        stockMl: Number(form.stockMl)
       }
 
       const url = editingId
@@ -128,10 +138,12 @@ function Products() {
     setForm({
       name: product.name || '',
       description: product.description || '',
-      price: String(product.price),
+      price30ml: String(product.price30ml ?? ''),
+      price50ml: String(product.price50ml ?? ''),
+      price100ml: String(product.price100ml ?? ''),
       category: product.category || '',
       image: product.image || '',
-      stock: String(product.stock ?? 0)
+      stockMl: String(product.stockMl ?? 0)
     })
 
     setSuccess('')
@@ -285,11 +297,36 @@ function Products() {
 
           <input
             style={styles.input}
-            name="price"
+            name="price30ml"
             type="number"
             min="0"
-            placeholder="Price (DA)"
-            value={form.price}
+            step="any"
+            placeholder="30 ml price (DA)"
+            value={form.price30ml}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            style={styles.input}
+            name="price50ml"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="50 ml price (DA)"
+            value={form.price50ml}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            style={styles.input}
+            name="price100ml"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="100 ml price (DA)"
+            value={form.price100ml}
             onChange={handleChange}
             required
           />
@@ -313,12 +350,12 @@ function Products() {
 
           <input
             style={styles.input}
-            name="stock"
+            name="stockMl"
             type="number"
             min="0"
             step="1"
-            placeholder="Stock quantity"
-            value={form.stock}
+            placeholder="Available mixture (ml)"
+            value={form.stockMl}
             onChange={handleChange}
             required
           />
@@ -390,30 +427,32 @@ function Products() {
                   {product.name}
                 </h3>
 
-                <p>Price: {product.price} DA</p>
-                <p>Category: {product.category}</p>
-                <p>Stock: {product.stock}</p>
+                <p>30 ml: {product.price30ml ?? 'Not set'} DA</p>
+                <p>50 ml: {product.price50ml ?? 'Not set'} DA</p>
+                <p>100 ml: {product.price100ml ?? 'Not set'} DA</p>
 
-                {/* Visibility status */}
+                <p>Category: {product.category}</p>
+
+                <p>
+                  Available mixture: {product.stockMl ?? 0} ml
+                </p>
+
                 <p style={{
-                  color: product.isAvailable
-                    ? '#4caf50'
-                    : '#ff5555',
+                  color: product.isAvailable ? '#4caf50' : '#ff5555',
                   fontWeight: 'bold'
                 }}>
                   {product.isAvailable ? 'Listed' : 'Hidden'}
                 </p>
 
-                {/* Stock status */}
                 <p style={{
-                  color: Number(product.stock) > 0
+                  color: Number(product.stockMl) > 0
                     ? '#4caf50'
                     : '#ff5555',
                   fontWeight: 'bold'
                 }}>
-                  {Number(product.stock) > 0
-                    ? 'In stock'
-                    : 'Out of stock'}
+                  {Number(product.stockMl) > 0
+                    ? 'Mixture available'
+                    : 'Out of mixture'}
                 </p>
 
                 <p style={styles.description}>
@@ -440,13 +479,10 @@ function Products() {
 
                 </div>
 
-                {/* Visibility toggle */}
                 <button
                   style={{
                     ...styles.toggleButton,
-                    background: product.isAvailable
-                      ? '#555'
-                      : '#267a45'
+                    background: product.isAvailable ? '#555' : '#267a45'
                   }}
                   disabled={togglingId === product.id}
                   onClick={() => handleToggleAvailability(product)}

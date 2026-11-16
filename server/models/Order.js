@@ -33,21 +33,33 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
       },
+      sizeMl: {
+        type: Number,
+        enum: [30, 50, 100],
+        required: true
+      },
       price: {
         type: Number,
-        required: true
+        required: true,
+        min: 0
       },
       quantity: {
         type: Number,
         required: true,
         min: 1
+      },
+      lineTotal: {
+        type: Number,
+        required: true,
+        min: 0
       }
     }
   ],
 
   total: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
 
   paymentMethod: {
@@ -59,6 +71,12 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],
     default: 'Pending'
+  },
+
+  // Prevent restoring mixture stock more than once
+  stockRestored: {
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true })

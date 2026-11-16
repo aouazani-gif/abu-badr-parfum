@@ -7,16 +7,18 @@ const protectAdmin = require('../middleware/authMiddleware')
 const Order = require('../models/Order')
 const Product = require('../models/Product')
 
-// Create a new order and update stock
+const allowedSizes = [30, 50, 100]
+
+// Create a new order and deduct mixture stock
 router.post('/', async (req, res) => {
   const { customer, products } = req.body
 
   // Validate customer information
   if (
-    !customer?.fullName ||
-    !customer?.phone ||
-    !customer?.wilaya ||
-    !customer?.address
+    !customer?.fullName?.trim() ||
+    !customer?.phone?.trim() ||
+    !customer?.wilaya?.trim() ||
+    !customer?.address?.trim()
   ) {
     return res.status(400).json({
       message: 'All customer fields are required'
@@ -30,29 +32,37 @@ router.post('/', async (req, res) => {
     })
   }
 
+  // Validate every cart item
   for (const item of products) {
+    const sizeMl = Number(item.sizeMl)
+
     if (
       !mongoose.Types.ObjectId.isValid(item.productId) ||
       !Number.isInteger(item.quantity) ||
-      item.quantity < 1
+      item.quantity < 1 ||
+      !allowedSizes.includes(sizeMl)
     ) {
       return res.status(400).json({
-        message: 'Invalid product or quantity'
+        message: 'Invalid product, size, or quantity'
       })
     }
   }
 
-  const session = await mongoose.startSession()
+  let session
 
   try {
+    session = await mongoose.startSession()
+
     let savedOrder
 
-    // Keep stock updates and order creation together
     await session.withTransaction(async () => {
       let total = 0
       const orderProducts = []
 
       for (const item of products) {
+        const sizeMl = Number(item.sizeMl)
+        const requiredMl = sizeMl * item.quantity
+
         const product = await Product.findOne({
           _id: item.productId,
           isAvailable: true
@@ -62,19 +72,24 @@ router.post('/', async (req, res) => {
           throw new Error('Product not found or unavailable')
         }
 
-        if (item.quantity > product.stock) {
-          throw new Error(`Not enough stock for ${product.name}`)
+        // Get the correct price from the database
+        const price = Number(product[`price${sizeMl}ml`])
+
+        if (!Number.isFinite(price) || price < 0) {
+          throw new Error(
+            `Invalid price for ${product.name} (${sizeMl} ml)`
+          )
         }
 
-        // Decrease stock safely
+        // Deduct the exact mixture quantity atomically
         const updatedProduct = await Product.findOneAndUpdate(
           {
             _id: item.productId,
             isAvailable: true,
-            stock: { $gte: item.quantity }
+            stockMl: { $gte: requiredMl }
           },
           {
-            $inc: { stock: -item.quantity }
+            $inc: { stockMl: -requiredMl }
           },
           {
             new: true,
@@ -83,25 +98,38 @@ router.post('/', async (req, res) => {
         )
 
         if (!updatedProduct) {
-          throw new Error(`Not enough stock for ${product.name}`)
+          throw new Error(
+            `Not enough mixture available for ${product.name}`
+          )
         }
 
-        total += product.price * item.quantity
+        const lineTotal = price * item.quantity
+
+        total += lineTotal
 
         orderProducts.push({
           product: product._id,
           name: product.name,
-          price: product.price,
-          quantity: item.quantity
+          sizeMl,
+          price,
+          quantity: item.quantity,
+          lineTotal
         })
       }
 
       const [order] = await Order.create(
         [{
-          customer,
+          customer: {
+            fullName: customer.fullName.trim(),
+            phone: customer.phone.trim(),
+            wilaya: customer.wilaya.trim(),
+            address: customer.address.trim()
+          },
           products: orderProducts,
           total,
-          paymentMethod: 'Cash on Delivery'
+          paymentMethod: 'Cash on Delivery',
+          status: 'Pending',
+          stockRestored: false
         }],
         { session }
       )
@@ -122,7 +150,9 @@ router.post('/', async (req, res) => {
     })
 
   } finally {
-    await session.endSession()
+    if (session) {
+      await session.endSession()
+    }
   }
 })
 
@@ -138,6 +168,8 @@ router.get('/', protectAdmin, async (req, res) => {
     })
 
   } catch (error) {
+    console.error('Fetch Orders Error:', error)
+
     res.status(500).json({
       message: 'Failed to fetch orders',
       error: error.message
@@ -146,46 +178,116 @@ router.get('/', protectAdmin, async (req, res) => {
 })
 
 // Update order status (Admin only)
+// Restore mixture stock when an order is cancelled
 router.patch('/:id/status', protectAdmin, async (req, res) => {
+  const { status } = req.body
+
+  const allowedStatuses = [
+    'Pending',
+    'Confirmed',
+    'Shipped',
+    'Delivered',
+    'Cancelled'
+  ]
+
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({
+      message: 'Invalid order status'
+    })
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      message: 'Invalid order ID'
+    })
+  }
+
+  let session
+
   try {
-    const { status } = req.body
+    session = await mongoose.startSession()
 
-    const allowedStatuses = [
-      'Pending',
-      'Confirmed',
-      'Shipped',
-      'Delivered',
-      'Cancelled'
-    ]
+    let updatedOrder
 
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({
-        message: 'Invalid order status'
-      })
-    }
+    await session.withTransaction(async () => {
+      const order = await Order.findById(req.params.id).session(session)
 
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true }
-    )
+      if (!order) {
+        throw new Error('ORDER_NOT_FOUND')
+      }
 
-    if (!order) {
+      // Do not allow a cancelled order to be reactivated
+      if (order.status === 'Cancelled' && status !== 'Cancelled') {
+        throw new Error(
+          'A cancelled order cannot be reactivated'
+        )
+      }
+
+      // Already cancelled: do not restore stock again
+      if (order.status === 'Cancelled' && status === 'Cancelled') {
+        updatedOrder = order
+        return
+      }
+
+      // Restore mixture when cancelling
+      if (status === 'Cancelled' && !order.stockRestored) {
+        for (const item of order.products) {
+          if (
+            !item.sizeMl ||
+            !allowedSizes.includes(Number(item.sizeMl))
+          ) {
+            throw new Error(
+              'This is a legacy order without bottle-size information. Its stock cannot be restored automatically.'
+            )
+          }
+
+          const restoredMl = Number(item.sizeMl) * Number(item.quantity)
+
+          const result = await Product.updateOne(
+            { _id: item.product },
+            { $inc: { stockMl: restoredMl } },
+            { session }
+          )
+
+          if (result.matchedCount === 0) {
+            throw new Error(
+              `Cannot restore stock: product "${item.name}" no longer exists`
+            )
+          }
+        }
+
+        order.stockRestored = true
+      }
+
+      order.status = status
+
+      await order.save({ session })
+
+      updatedOrder = order
+    })
+
+    res.json({
+      message: 'Order status updated successfully',
+      order: updatedOrder
+    })
+
+  } catch (error) {
+    console.error('Update Order Status Error:', error)
+
+    if (error.message === 'ORDER_NOT_FOUND') {
       return res.status(404).json({
         message: 'Order not found'
       })
     }
 
-    res.json({
-      message: 'Order status updated successfully',
-      order
+    res.status(400).json({
+      message: error.message || 'Failed to update order status'
     })
 
-  } catch (error) {
-    res.status(500).json({
-      message: 'Failed to update order status',
-      error: error.message
-    })
+  } finally {
+    if (session) {
+      await session.endSession()
+    }
   }
 })
 

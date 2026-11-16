@@ -6,11 +6,11 @@ function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const handleLogout = () => {
-  sessionStorage.removeItem('adminToken')
-  window.location.href = '/admin/login'
-}
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('adminToken')
+    window.location.href = '/admin/login'
+  }
 
   // Fetch orders from backend
   useEffect(() => {
@@ -18,11 +18,14 @@ function AdminDashboard() {
       try {
         const token = sessionStorage.getItem('adminToken')
 
-        const response = await fetch('http://localhost:5000/api/orders', {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const response = await fetch(
+          'http://localhost:5000/api/orders',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        })
+        )
 
         const data = await response.json()
 
@@ -30,7 +33,7 @@ function AdminDashboard() {
           throw new Error(data.message || 'Failed to fetch orders')
         }
 
-        setOrders(data.orders)
+        setOrders(data.orders || [])
       } catch (error) {
         setError(error.message)
       } finally {
@@ -64,8 +67,8 @@ function AdminDashboard() {
         throw new Error(data.message || 'Failed to update status')
       }
 
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
           order._id === orderId ? data.order : order
         )
       )
@@ -74,23 +77,31 @@ function AdminDashboard() {
     }
   }
 
-  if (loading) return <p>Loading orders...</p>
-  if (error) return <p>{error}</p>
+  if (loading) {
+    return <p>Loading orders...</p>
+  }
+
+  if (error) {
+    return <p>{error}</p>
+  }
 
   return (
     <div className="admin-dashboard">
 
       {/* Header */}
       <header className="dashboard-header">
-  <div>
-    <h1>ABU BADR PARFUM</h1>
-    <p>Administration Dashboard</p>
-  </div>
+        <div>
+          <h1>ABU BADR PARFUM</h1>
+          <p>Administration Dashboard</p>
+        </div>
 
-  <button className="logout-button" onClick={handleLogout}>
-    Logout
-  </button>
-</header>
+        <button
+          className="logout-button"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+      </header>
 
       {/* Statistics */}
       <section className="dashboard-stats">
@@ -101,12 +112,16 @@ function AdminDashboard() {
 
         <div className="stat-card">
           <h3>Pending Orders</h3>
-          <p>{orders.filter(order => order.status === 'Pending').length}</p>
+          <p>
+            {orders.filter(order => order.status === 'Pending').length}
+          </p>
         </div>
 
         <div className="stat-card">
           <h3>Delivered Orders</h3>
-          <p>{orders.filter(order => order.status === 'Delivered').length}</p>
+          <p>
+            {orders.filter(order => order.status === 'Delivered').length}
+          </p>
         </div>
       </section>
 
@@ -117,26 +132,63 @@ function AdminDashboard() {
         {orders.length === 0 ? (
           <p>No orders found.</p>
         ) : (
-          orders.map((order) => (
+          orders.map(order => (
             <div className="order-card" key={order._id}>
 
               <h3>Order #{order._id}</h3>
 
-              <p>Customer: {order.customer.fullName}</p>
-              <p>Phone: {order.customer.phone}</p>
-              <p>Wilaya: {order.customer.wilaya}</p>
-              <p>Address: {order.customer.address}</p>
+              <p>
+                Customer: {order.customer.fullName}
+              </p>
+
+              <p>
+                Phone: {order.customer.phone}
+              </p>
+
+              <p>
+                Wilaya: {order.customer.wilaya}
+              </p>
+
+              <p>
+                Address: {order.customer.address}
+              </p>
 
               <h4>Products:</h4>
 
-              {order.products.map((product, index) => (
-                <p key={index}>
-                  {product.name} × {product.quantity} — {product.price} DA
-                </p>
-              ))}
+              <div className="order-products">
+                {order.products.map((product, index) => (
+                  <div className="order-product" key={index}>
+                    <p>
+                      <strong>{product.name}</strong>
+                    </p>
+
+                    <p>
+                      Bottle size: {product.sizeMl || 'Legacy order'} 
+                      {product.sizeMl ? ' ml' : ''}
+                    </p>
+
+                    <p>
+                      Quantity: {product.quantity}
+                    </p>
+
+                    <p>
+                      Price per bottle:{' '}
+                      {Number(product.price).toLocaleString()} DA
+                    </p>
+
+                    <p>
+                      Subtotal:{' '}
+                      {Number(
+                        product.lineTotal ??
+                        product.price * product.quantity
+                      ).toLocaleString()} DA
+                    </p>
+                  </div>
+                ))}
+              </div>
 
               <p className="order-total">
-                Total: {order.total} DA
+                Total: {Number(order.total).toLocaleString()} DA
               </p>
 
               <div className="order-status">
@@ -144,9 +196,10 @@ function AdminDashboard() {
 
                 <select
                   value={order.status}
-                  onChange={(e) =>
+                  onChange={e =>
                     updateOrderStatus(order._id, e.target.value)
                   }
+                  disabled={order.status === 'Cancelled'}
                 >
                   <option value="Pending">Pending</option>
                   <option value="Confirmed">Confirmed</option>

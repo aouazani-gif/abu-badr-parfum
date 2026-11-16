@@ -13,7 +13,19 @@ const productSchema = new mongoose.Schema({
     default: ''
   },
 
-  price: {
+  price30ml: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+
+  price50ml: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+
+  price100ml: {
     type: Number,
     required: true,
     min: 0
@@ -29,7 +41,7 @@ const productSchema = new mongoose.Schema({
     default: ''
   },
 
-  stock: {
+  stockMl: {
     type: Number,
     default: 0,
     min: 0

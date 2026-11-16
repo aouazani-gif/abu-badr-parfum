@@ -4,16 +4,24 @@ import Navbar from '../components/Navbar'
 import Checkout from '../components/Checkout'
 import ProductDetails from '../components/ProductDetails'
 
+const allowedSizes = [30, 50, 100]
+
 function Shop() {
   const [products, setProducts] = useState([])
 
-  // Load the saved cart when the page opens
   const [cart, setCart] = useState(() => {
     try {
       const savedCart = localStorage.getItem('abuBadrCart')
       const parsedCart = savedCart ? JSON.parse(savedCart) : []
 
-      return Array.isArray(parsedCart) ? parsedCart : []
+      if (!Array.isArray(parsedCart)) return []
+
+      return parsedCart.filter(item =>
+        item.id &&
+        allowedSizes.includes(Number(item.sizeMl)) &&
+        Number.isInteger(item.quantity) &&
+        item.quantity > 0
+      )
     } catch {
       return []
     }
@@ -22,13 +30,13 @@ function Shop() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('default')
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedSizes, setSelectedSizes] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [orderError, setOrderError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Save the cart whenever it changes
   useEffect(() => {
     try {
       localStorage.setItem('abuBadrCart', JSON.stringify(cart))
@@ -40,7 +48,10 @@ function Shop() {
   useEffect(() => {
     fetch('http://localhost:5000/api/products')
       .then(response => {
-        if (!response.ok) throw new Error('Failed to fetch products')
+        if (!response.ok) {
+          throw new Error('Failed to fetch products')
+        }
+
         return response.json()
       })
       .then(data => {
@@ -53,9 +64,7 @@ function Shop() {
       })
   }, [])
 
-  const availableProducts = products
-
-  const filteredProducts = availableProducts.filter(product =>
+  const filteredProducts = products.filter(product =>
     `${product.name} ${product.category}`
       .toLowerCase()
       .includes(searchTerm.trim().toLowerCase())
@@ -64,62 +73,119 @@ function Shop() {
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortOption) {
       case 'price-low':
-        return Number(a.price) - Number(b.price)
+        return Number(a.price30ml) - Number(b.price30ml)
+
       case 'price-high':
-        return Number(b.price) - Number(a.price)
+        return Number(b.price30ml) - Number(a.price30ml)
+
       case 'name':
         return a.name.localeCompare(b.name)
+
       default:
         return 0
     }
   })
 
-  // Add product to cart with stock validation
-  function addToCart(product) {
-    const stock = Number(product.stock)
-    if (stock <= 0) return false
+  function getUsedMl(productId, excludedSize = null) {
+    return cart.reduce((total, item) => {
+      if (item.id !== productId) return total
+      if (excludedSize !== null && item.sizeMl === excludedSize) {
+        return total
+      }
 
-    const existing = cart.find(item => item.id === product.id)
-    if (existing && existing.quantity >= stock) return false
+      return total + item.sizeMl * item.quantity
+    }, 0)
+  }
 
-    setCart(currentCart => {
-      const currentItem = currentCart.find(item => item.id === product.id)
+  function addToCart(product, sizeMl = 30) {
+    sizeMl = Number(sizeMl)
 
-      if (currentItem) {
-        if (currentItem.quantity >= stock) return currentCart
+    if (!allowedSizes.includes(sizeMl)) return false
 
-        return currentCart.map(item =>
-          item.id === product.id
+    const stockMl = Number(product.stockMl) || 0
+    const usedMl = getUsedMl(product.id)
+    const remainingMl = stockMl - usedMl
+
+    if (remainingMl < sizeMl) return false
+
+    const price = Number(product[`price${sizeMl}ml`])
+
+    if (!Number.isFinite(price) || price < 0) return false
+
+    const existingItem = cart.find(
+      item => item.id === product.id && item.sizeMl === sizeMl
+    )
+
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      image: product.image,
+      sizeMl,
+      price,
+      stockMl,
+      quantity: 1
+    }
+
+    if (existingItem) {
+      setCart(currentCart =>
+        currentCart.map(item =>
+          item.id === product.id && item.sizeMl === sizeMl
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
-      }
-
-      return [...currentCart, { ...product, quantity: 1 }]
-    })
+      )
+    } else {
+      setCart(currentCart => [...currentCart, cartItem])
+    }
 
     return true
   }
 
-  function updateQuantity(id, amount) {
+  function updateQuantity(id, sizeMl, amount) {
+    const item = cart.find(
+      cartItem => cartItem.id === id && cartItem.sizeMl === sizeMl
+    )
+
+    if (!item) return
+
+    const otherSizesUsed = getUsedMl(id, sizeMl)
+    const availableForThisSize = Math.max(
+      0,
+      Number(item.stockMl) - otherSizesUsed
+    )
+
+    const maxQuantity = Math.floor(
+      availableForThisSize / sizeMl
+    )
+
     setCart(currentCart =>
       currentCart
-        .map(item => {
-          if (item.id !== id) return item
+        .map(cartItem => {
+          if (
+            cartItem.id !== id ||
+            cartItem.sizeMl !== sizeMl
+          ) {
+            return cartItem
+          }
 
-          const newQuantity = item.quantity + amount
+          const newQuantity = cartItem.quantity + amount
 
           return {
-            ...item,
-            quantity: Math.min(newQuantity, Number(item.stock))
+            ...cartItem,
+            quantity: Math.min(newQuantity, maxQuantity)
           }
         })
-        .filter(item => item.quantity > 0)
+        .filter(cartItem => cartItem.quantity > 0)
     )
   }
 
-  function removeFromCart(id) {
-    setCart(currentCart => currentCart.filter(item => item.id !== id))
+  function removeFromCart(id, sizeMl) {
+    setCart(currentCart =>
+      currentCart.filter(
+        item => !(item.id === id && item.sizeMl === sizeMl)
+      )
+    )
   }
 
   const cartCount = cart.reduce(
@@ -139,12 +205,15 @@ function Shop() {
     try {
       const response = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           customer: orderData.customer,
           products: orderData.products.map(item => ({
             productId: item.id,
-            quantity: item.quantity
+            quantity: item.quantity,
+            sizeMl: item.sizeMl
           }))
         })
       })
@@ -157,6 +226,7 @@ function Shop() {
 
       setOrderPlaced(true)
       setCart([])
+      localStorage.removeItem('abuBadrCart')
     } catch (error) {
       setOrderError(error.message)
     } finally {
@@ -243,15 +313,20 @@ function Shop() {
           ) : (
             <div className="products-grid">
               {sortedProducts.map((product, index) => {
-                const cartItem = cart.find(
-                  item => item.id === product.id
+                const selectedSize = Number(
+                  selectedSizes[product.id] || 30
                 )
 
-                const reachedStockLimit =
-                  cartItem &&
-                  cartItem.quantity >= Number(product.stock)
+                const price = Number(
+                  product[`price${selectedSize}ml`]
+                )
 
-                const outOfStock = Number(product.stock) <= 0
+                const stockMl = Number(product.stockMl) || 0
+                const usedMl = getUsedMl(product.id)
+                const remainingMl = Math.max(0, stockMl - usedMl)
+
+                const outOfStock = stockMl <= 0
+                const cannotAdd = remainingMl < selectedSize
 
                 return (
                   <div className="product-card" key={product.id}>
@@ -287,8 +362,83 @@ function Shop() {
                       <h3>{product.name}</h3>
 
                       <span className="price">
-                        {Number(product.price).toLocaleString()} DZD
+                        {Number(product.price30ml).toLocaleString()} DZD
                       </span>
+                      <p>Starting price — 30 ml</p>
+
+                      <label>Choose bottle size:</label>
+
+                      <div
+                        className="size-picker"
+                        role="group"
+                        aria-label={`Choose size for ${product.name}`}
+                        style={{
+                          display: 'flex',
+                          gap: '8px',
+                          margin: '12px 0',
+                          flexWrap: 'wrap'
+                        }}
+                      >
+                        {allowedSizes.map(size => {
+                          const isSelected = selectedSize === size
+                          const sizePrice = Number(
+                            product[`price${size}ml`]
+                          )
+
+                          return (
+                            <button
+                              key={size}
+                              type="button"
+                              className={`size-option ${isSelected ? 'active' : ''}`}
+                              onClick={() =>
+                                setSelectedSizes(current => ({
+                                  ...current,
+                                  [product.id]: size
+                                }))
+                              }
+                              aria-pressed={isSelected}
+                              style={{
+                                flex: '1',
+                                minWidth: '75px',
+                                padding: '10px 6px',
+                                borderRadius: '7px',
+                                border: isSelected
+                                  ? '1px solid #c9a45c'
+                                  : '1px solid #51452f',
+                                background: isSelected
+                                  ? 'linear-gradient(145deg, #c9a45c, #a9843e)'
+                                  : '#151515',
+                                color: isSelected ? '#080808' : '#e8e0d2',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                fontWeight: isSelected ? '700' : '500'
+                              }}
+                            >
+                              <span style={{ display: 'block' }}>
+                                {size} ml
+                              </span>
+                              <span
+                                style={{
+                                  display: 'block',
+                                  fontSize: '11px',
+                                  marginTop: '4px',
+                                  opacity: 0.9
+                                }}
+                              >
+                                {Number.isFinite(sizePrice)
+                                  ? `${sizePrice.toLocaleString()} DA`
+                                  : 'N/A'}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+
+                      <p className="price">
+                        {Number.isFinite(price)
+                          ? `${price.toLocaleString()} DZD`
+                          : 'Price unavailable'}
+                      </p>
 
                       <button
                         className="details-button"
@@ -299,15 +449,25 @@ function Shop() {
 
                       {outOfStock && <p>OUT OF STOCK</p>}
 
+                      {!outOfStock && (
+                        <p>
+                          Available mixture: {remainingMl} ml
+                        </p>
+                      )}
+
                       <button
                         className="add-button"
-                        onClick={() => addToCart(product)}
-                        disabled={outOfStock || reachedStockLimit}
+                        onClick={() => addToCart(product, selectedSize)}
+                        disabled={
+                          outOfStock ||
+                          cannotAdd ||
+                          !Number.isFinite(price)
+                        }
                       >
                         {outOfStock
                           ? 'OUT OF STOCK'
-                          : reachedStockLimit
-                            ? 'MAXIMUM STOCK ADDED'
+                          : cannotAdd
+                            ? 'NOT ENOUGH MIXTURE'
                             : 'ADD TO CART'}
                       </button>
                     </div>
@@ -334,36 +494,62 @@ function Shop() {
           <p className="empty-cart">Your cart is empty.</p>
         ) : (
           <>
-            {cart.map(item => (
-              <div className="cart-item" key={item.id}>
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>{Number(item.price).toLocaleString()} DZD</p>
-                </div>
+            {cart.map(item => {
+              const otherSizesUsed = getUsedMl(item.id, item.sizeMl)
 
-                <div className="quantity-controls">
-                  <button onClick={() => updateQuantity(item.id, -1)}>
-                    -
-                  </button>
+              const maxQuantity = Math.floor(
+                Math.max(0, Number(item.stockMl) - otherSizesUsed) /
+                item.sizeMl
+              )
 
-                  <span>{item.quantity}</span>
+              return (
+                <div
+                  className="cart-item"
+                  key={`${item.id}-${item.sizeMl}`}
+                >
+                  <div>
+                    <h3>{item.name}</h3>
+                    <p>Size: {item.sizeMl} ml</p>
+                    <p>{Number(item.price).toLocaleString()} DZD each</p>
+                    <p>
+                      Subtotal: {(
+                        item.price * item.quantity
+                      ).toLocaleString()} DZD
+                    </p>
+                  </div>
+
+                  <div className="quantity-controls">
+                    <button
+                      onClick={() =>
+                        updateQuantity(item.id, item.sizeMl, -1)
+                      }
+                    >
+                      -
+                    </button>
+
+                    <span>{item.quantity}</span>
+
+                    <button
+                      onClick={() =>
+                        updateQuantity(item.id, item.sizeMl, 1)
+                      }
+                      disabled={item.quantity >= maxQuantity}
+                    >
+                      +
+                    </button>
+                  </div>
 
                   <button
-                    onClick={() => updateQuantity(item.id, 1)}
-                    disabled={item.quantity >= Number(item.stock)}
+                    className="remove-button"
+                    onClick={() =>
+                      removeFromCart(item.id, item.sizeMl)
+                    }
                   >
-                    +
+                    Remove
                   </button>
                 </div>
-
-                <button
-                  className="remove-button"
-                  onClick={() => removeFromCart(item.id)}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+              )
+            })}
 
             <div className="cart-total">
               <h3>Total: {total.toLocaleString()} DZD</h3>
