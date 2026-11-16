@@ -6,7 +6,19 @@ import ProductDetails from '../components/ProductDetails'
 
 function Shop() {
   const [products, setProducts] = useState([])
-  const [cart, setCart] = useState([])
+
+  // Load the saved cart when the page opens
+  const [cart, setCart] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem('abuBadrCart')
+      const parsedCart = savedCart ? JSON.parse(savedCart) : []
+
+      return Array.isArray(parsedCart) ? parsedCart : []
+    } catch {
+      return []
+    }
+  })
+
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('default')
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -16,14 +28,19 @@ function Shop() {
   const [orderError, setOrderError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Fetch products from Express API
+  // Save the cart whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('abuBadrCart', JSON.stringify(cart))
+    } catch (error) {
+      console.error('Could not save cart:', error)
+    }
+  }, [cart])
+
   useEffect(() => {
     fetch('http://localhost:5000/api/products')
       .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch products')
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch products')
         return response.json()
       })
       .then(data => {
@@ -38,25 +55,20 @@ function Shop() {
 
   const availableProducts = products
 
-  // Filter products
   const filteredProducts = availableProducts.filter(product =>
     `${product.name} ${product.category}`
       .toLowerCase()
       .includes(searchTerm.trim().toLowerCase())
   )
 
-  // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortOption) {
       case 'price-low':
         return Number(a.price) - Number(b.price)
-
       case 'price-high':
         return Number(b.price) - Number(a.price)
-
       case 'name':
         return a.name.localeCompare(b.name)
-
       default:
         return 0
     }
@@ -65,26 +77,16 @@ function Shop() {
   // Add product to cart with stock validation
   function addToCart(product) {
     const stock = Number(product.stock)
-
     if (stock <= 0) return false
 
-    const existing = cart.find(
-      item => item.id === product.id
-    )
-
-    if (existing && existing.quantity >= stock) {
-      return false
-    }
+    const existing = cart.find(item => item.id === product.id)
+    if (existing && existing.quantity >= stock) return false
 
     setCart(currentCart => {
-      const currentItem = currentCart.find(
-        item => item.id === product.id
-      )
+      const currentItem = currentCart.find(item => item.id === product.id)
 
       if (currentItem) {
-        if (currentItem.quantity >= stock) {
-          return currentCart
-        }
+        if (currentItem.quantity >= stock) return currentCart
 
         return currentCart.map(item =>
           item.id === product.id
@@ -93,16 +95,12 @@ function Shop() {
         )
       }
 
-      return [
-        ...currentCart,
-        { ...product, quantity: 1 }
-      ]
+      return [...currentCart, { ...product, quantity: 1 }]
     })
 
     return true
   }
 
-  // Update cart quantity
   function updateQuantity(id, amount) {
     setCart(currentCart =>
       currentCart
@@ -113,69 +111,52 @@ function Shop() {
 
           return {
             ...item,
-            quantity: Math.min(
-              newQuantity,
-              Number(item.stock)
-            )
+            quantity: Math.min(newQuantity, Number(item.stock))
           }
         })
         .filter(item => item.quantity > 0)
     )
   }
 
-  // Remove product
   function removeFromCart(id) {
-    setCart(currentCart =>
-      currentCart.filter(item => item.id !== id)
-    )
+    setCart(currentCart => currentCart.filter(item => item.id !== id))
   }
 
-  // Cart item count
   const cartCount = cart.reduce(
     (total, item) => total + item.quantity,
     0
   )
 
-  // Cart total
   const total = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   )
 
-  // Submit order
   async function handlePlaceOrder(orderData) {
     setIsSubmitting(true)
     setOrderError('')
 
     try {
-      const response = await fetch(
-        'http://localhost:5000/api/orders',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            customer: orderData.customer,
-            products: orderData.products.map(item => ({
-              productId: item.id,
-              quantity: item.quantity
-            }))
-          })
-        }
-      )
+      const response = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: orderData.customer,
+          products: orderData.products.map(item => ({
+            productId: item.id,
+            quantity: item.quantity
+          }))
+        })
+      })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(
-          data.message || 'Failed to place order'
-        )
+        throw new Error(data.message || 'Failed to place order')
       }
 
       setOrderPlaced(true)
       setCart([])
-
     } catch (error) {
       setOrderError(error.message)
     } finally {
@@ -187,7 +168,6 @@ function Shop() {
     <>
       <Navbar cartCount={cartCount} />
 
-      {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
           <p className="subtitle">THE ART OF ELEGANCE</p>
@@ -215,12 +195,10 @@ function Shop() {
         </div>
       </section>
 
-      {/* Products Section */}
       <section className="products-section" id="products">
         <p className="subtitle">OUR SELECTION</p>
         <h2>Featured Fragrances</h2>
 
-        {/* Search */}
         <div className="product-search">
           <input
             type="text"
@@ -236,11 +214,8 @@ function Shop() {
           )}
         </div>
 
-        {/* Sorting */}
         <div className="product-sorting">
-          <label htmlFor="sort-products">
-            Sort by:
-          </label>
+          <label htmlFor="sort-products">Sort by:</label>
 
           <select
             id="sort-products"
@@ -256,9 +231,7 @@ function Shop() {
 
         {loading && <p>Loading products...</p>}
 
-        {error && (
-          <p className="error-message">{error}</p>
-        )}
+        {error && <p className="error-message">{error}</p>}
 
         {!loading && !error && (
           sortedProducts.length === 0 ? (
@@ -278,13 +251,10 @@ function Shop() {
                   cartItem &&
                   cartItem.quantity >= Number(product.stock)
 
-                const outOfStock =
-                  Number(product.stock) <= 0
+                const outOfStock = Number(product.stock) <= 0
 
                 return (
                   <div className="product-card" key={product.id}>
-
-                    {/* Real Product Image */}
                     <div className={`product-image bottle-${(index % 4) + 1}`}>
                       {product.image ? (
                         <>
@@ -314,7 +284,6 @@ function Shop() {
 
                     <div className="product-info">
                       <p>{product.category}</p>
-
                       <h3>{product.name}</h3>
 
                       <span className="price">
@@ -328,16 +297,12 @@ function Shop() {
                         VIEW DETAILS
                       </button>
 
-                      {outOfStock && (
-                        <p>OUT OF STOCK</p>
-                      )}
+                      {outOfStock && <p>OUT OF STOCK</p>}
 
                       <button
                         className="add-button"
                         onClick={() => addToCart(product)}
-                        disabled={
-                          outOfStock || reachedStockLimit
-                        }
+                        disabled={outOfStock || reachedStockLimit}
                       >
                         {outOfStock
                           ? 'OUT OF STOCK'
@@ -354,7 +319,6 @@ function Shop() {
         )}
       </section>
 
-      {/* Product Details */}
       <ProductDetails
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
@@ -362,31 +326,23 @@ function Shop() {
         cart={cart}
       />
 
-      {/* Cart */}
       <section className="cart-section" id="cart">
         <p className="subtitle">YOUR SELECTION</p>
         <h2>Shopping Cart</h2>
 
         {cart.length === 0 ? (
-          <p className="empty-cart">
-            Your cart is empty.
-          </p>
+          <p className="empty-cart">Your cart is empty.</p>
         ) : (
           <>
             {cart.map(item => (
               <div className="cart-item" key={item.id}>
                 <div>
                   <h3>{item.name}</h3>
-
-                  <p>
-                    {Number(item.price).toLocaleString()} DZD
-                  </p>
+                  <p>{Number(item.price).toLocaleString()} DZD</p>
                 </div>
 
                 <div className="quantity-controls">
-                  <button
-                    onClick={() => updateQuantity(item.id, -1)}
-                  >
+                  <button onClick={() => updateQuantity(item.id, -1)}>
                     -
                   </button>
 
@@ -394,9 +350,7 @@ function Shop() {
 
                   <button
                     onClick={() => updateQuantity(item.id, 1)}
-                    disabled={
-                      item.quantity >= Number(item.stock)
-                    }
+                    disabled={item.quantity >= Number(item.stock)}
                   >
                     +
                   </button>
@@ -412,15 +366,12 @@ function Shop() {
             ))}
 
             <div className="cart-total">
-              <h3>
-                Total: {total.toLocaleString()} DZD
-              </h3>
+              <h3>Total: {total.toLocaleString()} DZD</h3>
             </div>
           </>
         )}
       </section>
 
-      {/* Checkout */}
       {orderPlaced ? (
         <section className="order-success">
           <h2>Thank you for your order!</h2>
@@ -429,9 +380,7 @@ function Shop() {
       ) : (
         <>
           {orderError && (
-            <p className="error-message">
-              {orderError}
-            </p>
+            <p className="error-message">{orderError}</p>
           )}
 
           <Checkout
