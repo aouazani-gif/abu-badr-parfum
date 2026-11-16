@@ -19,7 +19,7 @@ function AdminDashboard() {
         const token = sessionStorage.getItem('adminToken')
 
         const response = await fetch(
-          'http://localhost:5000/api/orders',
+          'https://abu-badr-parfum-2.onrender.com',
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -50,7 +50,7 @@ function AdminDashboard() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/status`,
+        `https://abu-badr-parfum-2.onrender.com/api/orders/${orderId}/status`,
         {
           method: 'PATCH',
           headers: {

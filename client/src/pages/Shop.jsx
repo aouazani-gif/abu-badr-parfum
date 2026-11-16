@@ -46,7 +46,7 @@ function Shop() {
   }, [cart])
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/products')
+    fetch('https://abu-badr-parfum-2.onrender.com/api/products')
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch products')
@@ -195,7 +195,7 @@ function Shop() {
     setOrderError('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
