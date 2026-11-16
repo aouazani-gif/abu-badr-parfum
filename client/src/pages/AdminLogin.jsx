@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import './AdminLogin.css'
 
@@ -13,13 +14,25 @@ function AdminLogin() {
     setLoading(true)
 
     try {
-      const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-      })
+      const response = await fetch(
+        'https://abu-badr-parfum-2.onrender.com/api/admin/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        }
+      )
+
+      const contentType = response.headers.get('content-type')
+
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text()
+        throw new Error(
+          `Server returned an unexpected response: ${responseText}`
+        )
+      }
 
       const data = await response.json()
 
@@ -27,12 +40,17 @@ function AdminLogin() {
         throw new Error(data.message || 'Login failed')
       }
 
+      if (!data.token) {
+        throw new Error('Login response does not contain an admin token')
+      }
+
       sessionStorage.setItem('adminToken', data.token)
 
       window.location.href = '/admin/dashboard'
 
     } catch (error) {
-      setError(error.message)
+      console.error('Admin login error:', error)
+      setError(error.message || 'Unable to connect to server')
     } finally {
       setLoading(false)
     }
