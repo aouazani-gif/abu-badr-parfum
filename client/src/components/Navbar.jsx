@@ -2,9 +2,13 @@
 function Navbar({ cartCount }) {
   return (
     <nav className="navbar">
-      <div className="logo">
-        ABU BADR <span>PARFUM</span>
-      </div>
+      <a href="#" className="navbar-brand" aria-label="Abu Badr Parfum Home">
+        <img
+          src="/abu-badr-logo.jpg"
+          alt="Abu Badr Parfum"
+          className="navbar-logo"
+        />
+      </a>
 
       <ul className="nav-links">
         <li>
