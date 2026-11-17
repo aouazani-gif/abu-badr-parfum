@@ -31,7 +31,7 @@ function Products() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        'http://localhost:5000/api/products/admin/all',
+        'https://abu-badr-parfum-2.onrender.com/api/products/admin/all',
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -96,8 +96,8 @@ function Products() {
       }
 
       const url = editingId
-        ? `http://localhost:5000/api/products/${editingId}`
-        : 'http://localhost:5000/api/products'
+        ? `https://abu-badr-parfum-2.onrender.com/api/products/${editingId}`
+        : 'https://abu-badr-parfum-2.onrender.com/api/products'
 
       const response = await fetch(url, {
         method: editingId ? 'PUT' : 'POST',
@@ -178,7 +178,7 @@ function Products() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        `http://localhost:5000/api/products/${productId}`,
+        `https://abu-badr-parfum-2.onrender.com:///api/products/${productId}`,
         {
           method: 'DELETE',
           headers: {
@@ -215,7 +215,7 @@ function Products() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        `http://localhost:5000/api/products/${product.id}`,
+        `https://abu-badr-parfum-2.onrender.com/api/products/${product.id}`,
         {
           method: 'PUT',
           headers: {

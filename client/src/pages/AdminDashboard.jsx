@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import './AdminDashboard.css'
 
+const API_URL = 'https://abu-badr-parfum-2.onrender.com/api'
+
 function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,14 +20,16 @@ function AdminDashboard() {
       try {
         const token = sessionStorage.getItem('adminToken')
 
-        const response = await fetch(
-          'https://abu-badr-parfum-2.onrender.com',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
+        if (!token) {
+          window.location.href = '/admin/login'
+          return
+        }
+
+        const response = await fetch(`${API_URL}/orders`, {
+          headers: {
+            Authorization: `Bearer ${token}`
           }
-        )
+        })
 
         const data = await response.json()
 
@@ -33,7 +37,7 @@ function AdminDashboard() {
           throw new Error(data.message || 'Failed to fetch orders')
         }
 
-        setOrders(data.orders || [])
+        setOrders(Array.isArray(data) ? data : data.orders || [])
       } catch (error) {
         setError(error.message)
       } finally {
@@ -50,7 +54,7 @@ function AdminDashboard() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        `https://abu-badr-parfum-2.onrender.com/api/orders/${orderId}/status`,
+        `${API_URL}/orders/${orderId}/status`,
         {
           method: 'PATCH',
           headers: {
@@ -137,21 +141,10 @@ function AdminDashboard() {
 
               <h3>Order #{order._id}</h3>
 
-              <p>
-                Customer: {order.customer.fullName}
-              </p>
-
-              <p>
-                Phone: {order.customer.phone}
-              </p>
-
-              <p>
-                Wilaya: {order.customer.wilaya}
-              </p>
-
-              <p>
-                Address: {order.customer.address}
-              </p>
+              <p>Customer: {order.customer.fullName}</p>
+              <p>Phone: {order.customer.phone}</p>
+              <p>Wilaya: {order.customer.wilaya}</p>
+              <p>Address: {order.customer.address}</p>
 
               <h4>Products:</h4>
 
@@ -163,13 +156,11 @@ function AdminDashboard() {
                     </p>
 
                     <p>
-                      Bottle size: {product.sizeMl || 'Legacy order'} 
+                      Bottle size: {product.sizeMl || 'Legacy order'}
                       {product.sizeMl ? ' ml' : ''}
                     </p>
 
-                    <p>
-                      Quantity: {product.quantity}
-                    </p>
+                    <p>Quantity: {product.quantity}</p>
 
                     <p>
                       Price per bottle:{' '}
