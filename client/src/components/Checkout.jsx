@@ -2,15 +2,41 @@
 import { useState } from 'react'
 import dz from 'geoalgeria'
 
+function Checkout({ cart, total, onPlaceOrder, isSubmitting, language = 'en' }) {
+  const isArabic = language === 'ar'
 
+  const t = {
+    emptyCart: isArabic ? 'سلة التسوق فارغة.' : 'Your cart is empty.',
+    subtitle: isArabic ? 'بقيت خطوة واحدة' : 'ALMOST YOURS',
+    title: isArabic ? 'أكمل طلبك' : 'Complete Your Order',
+    fullName: isArabic ? 'الاسم الكامل' : 'Full Name',
+    phone: isArabic ? 'رقم الهاتف (مثال: 0550123456)' : 'Phone Number (e.g. 0550123456)',
+    wilaya: isArabic ? 'اختر ولايتك' : 'Select your Wilaya',
+    commune: isArabic ? 'اختر بلديتك' : 'Select your Commune',
+    selectWilayaFirst: isArabic ? 'اختر الولاية أولا' : 'Select a Wilaya first',
+    address: isArabic ? 'عنوان التوصيل بالتفصيل (اختياري)' : 'Detailed Delivery Address (Optional)',
+    payment: isArabic ? 'طريقة الدفع' : 'Payment Method',
+    cod: isArabic ? 'الدفع عند الاستلام' : 'Cash on Delivery (COD)',
+    payWhenArrives: isArabic ? 'ادفع عند وصول طلبك.' : 'Pay when your order arrives.',
+    total: isArabic ? 'المجموع:' : 'Order Total:',
+    placing: isArabic ? 'جارٍ إرسال الطلب...' : 'PLACING ORDER...',
+    placeOrder: isArabic ? 'تأكيد الطلب' : 'PLACE ORDER',
+    nameError: isArabic
+      ? 'يرجى إدخال الاسم الكامل (3 أحرف على الأقل).'
+      : 'Please enter your full name (at least 3 characters).',
+    phoneError: isArabic
+      ? 'يرجى إدخال رقم هاتف جزائري صحيح.'
+      : 'Please enter a valid Algerian phone number.',
+    wilayaError: isArabic ? 'يرجى اختيار الولاية.' : 'Please select your wilaya.',
+    communeError: isArabic ? 'يرجى اختيار البلدية.' : 'Please select your commune.'
+  }
 
-function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
     wilaya: '',
     commune: '',
-    address: '',
+    address: ''
   })
 
   const [errors, setErrors] = useState({})
@@ -29,13 +55,13 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
     setForm(currentForm => ({
       ...currentForm,
       [name]: value,
-      ...(name === 'wilaya' ? { commune: '' } : {}),
+      ...(name === 'wilaya' ? { commune: '' } : {})
     }))
 
     setErrors(currentErrors => ({
       ...currentErrors,
       [name]: '',
-      ...(name === 'wilaya' ? { commune: '' } : {}),
+      ...(name === 'wilaya' ? { commune: '' } : {})
     }))
   }
 
@@ -43,8 +69,7 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
     const newErrors = {}
 
     if (form.fullName.trim().length < 3) {
-      newErrors.fullName =
-        'Please enter your full name (at least 3 characters).'
+      newErrors.fullName = t.nameError
     }
 
     const cleanPhone = form.phone.replace(/[\s-]/g, '')
@@ -53,16 +78,15 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
       /^(0[5-7]\d{8}|(\+213|213)[5-7]\d{8}|0[2-4]\d{7}|(\+213|213)[2-4]\d{7})$/
 
     if (!phoneRegex.test(cleanPhone)) {
-      newErrors.phone =
-        'Please enter a valid Algerian phone number.'
+      newErrors.phone = t.phoneError
     }
 
     if (!form.wilaya) {
-      newErrors.wilaya = 'Please select your wilaya.'
+      newErrors.wilaya = t.wilayaError
     }
 
     if (!form.commune) {
-      newErrors.commune = 'Please select your commune.'
+      newErrors.commune = t.communeError
     }
 
     setErrors(newErrors)
@@ -82,27 +106,35 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
         phone: form.phone.trim(),
         wilaya: `${String(selectedWilaya.code).padStart(2, '0')} - ${selectedWilaya.name_fr}`,
         commune: form.commune,
-        address: form.address.trim(),
+        address: form.address.trim()
       },
-      products: cart,
+      products: cart
     })
   }
 
   if (cart.length === 0) {
-    return <p className="empty-cart">Your cart is empty.</p>
+    return (
+      <p className="empty-cart" dir={isArabic ? 'rtl' : 'ltr'}>
+        {t.emptyCart}
+      </p>
+    )
   }
 
   return (
-    <section className="checkout-section" id="checkout">
-      <p className="subtitle">ALMOST YOURS</p>
-      <h2>Complete Your Order</h2>
+    <section
+      className="checkout-section"
+      id="checkout"
+      dir={isArabic ? 'rtl' : 'ltr'}
+    >
+      <p className="subtitle">{t.subtitle}</p>
+      <h2>{t.title}</h2>
 
       <form className="checkout-form" onSubmit={handleSubmit}>
         <div className="checkout-field">
           <input
             type="text"
             name="fullName"
-            placeholder="Full Name"
+            placeholder={t.fullName}
             value={form.fullName}
             onChange={handleChange}
             required
@@ -120,7 +152,7 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
           <input
             type="tel"
             name="phone"
-            placeholder="Phone Number (e.g. 0550123456)"
+            placeholder={t.phone}
             value={form.phone}
             onChange={handleChange}
             required
@@ -140,7 +172,7 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
             required
             disabled={isSubmitting}
           >
-            <option value="">Select your Wilaya</option>
+            <option value="">{t.wilaya}</option>
 
             {dz.wilayas.map(wilaya => (
               <option key={wilaya.code} value={String(wilaya.code)}>
@@ -163,9 +195,7 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
             disabled={isSubmitting || !form.wilaya}
           >
             <option value="">
-              {form.wilaya
-                ? 'Select your Commune'
-                : 'Select a Wilaya first'}
+              {form.wilaya ? t.commune : t.selectWilayaFirst}
             </option>
 
             {communes.map(commune => (
@@ -186,7 +216,7 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
         <div className="checkout-field">
           <textarea
             name="address"
-            placeholder="Detailed Delivery Address (Optional)"
+            placeholder={t.address}
             value={form.address}
             onChange={handleChange}
             maxLength={300}
@@ -195,14 +225,14 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
         </div>
 
         <div className="payment-info">
-          <strong>Payment Method</strong>
-          <p>Cash on Delivery (COD)</p>
-          <small>Pay when your order arrives.</small>
+          <strong>{t.payment}</strong>
+          <p>{t.cod}</p>
+          <small>{t.payWhenArrives}</small>
         </div>
 
         <div className="checkout-total">
           <h3>
-            Order Total: {Number(total).toLocaleString()} DZD
+            {t.total} {Number(total).toLocaleString()} DZD
           </h3>
         </div>
 
@@ -211,7 +241,7 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
           className="order-button"
           disabled={isSubmitting || cart.length === 0}
         >
-          {isSubmitting ? 'PLACING ORDER...' : 'PLACE ORDER'}
+          {isSubmitting ? t.placing : t.placeOrder}
         </button>
       </form>
     </section>

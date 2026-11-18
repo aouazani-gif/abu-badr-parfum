@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from 'react'
 
+const API_URL = 'https://abu-badr-parfum-2.onrender.com/api'
+
 function Products() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,17 +15,18 @@ function Products() {
   const emptyForm = {
     name: '',
     description: '',
+    descriptionAr: '',
     price30ml: '',
     price50ml: '',
     price100ml: '',
     category: '',
+    categoryAr: '',
     image: '',
     stockMl: ''
   }
 
   const [form, setForm] = useState(emptyForm)
 
-  // Fetch all products for admin
   const fetchProducts = async () => {
     try {
       setError('')
@@ -31,7 +34,7 @@ function Products() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        'https://abu-badr-parfum-2.onrender.com/api/products/admin/all',
+        `${API_URL}/products/admin/all`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -45,7 +48,6 @@ function Products() {
         throw new Error(data.message || 'Failed to fetch products')
       }
 
-      // Backend returns { count, products }
       if (!Array.isArray(data.products)) {
         throw new Error('Invalid products response from server')
       }
@@ -68,7 +70,6 @@ function Products() {
     fetchProducts()
   }, [])
 
-  // Handle form inputs
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -76,7 +77,6 @@ function Products() {
     })
   }
 
-  // Add or update product
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -96,8 +96,8 @@ function Products() {
       }
 
       const url = editingId
-        ? `https://abu-badr-parfum-2.onrender.com/api/products/${editingId}`
-        : 'https://abu-badr-parfum-2.onrender.com/api/products'
+        ? `${API_URL}/products/${editingId}`
+        : `${API_URL}/products`
 
       const response = await fetch(url, {
         method: editingId ? 'PUT' : 'POST',
@@ -131,17 +131,18 @@ function Products() {
     }
   }
 
-  // Start editing
   const handleEdit = (product) => {
     setEditingId(product.id)
 
     setForm({
       name: product.name || '',
       description: product.description || '',
+      descriptionAr: product.descriptionAr || '',
       price30ml: String(product.price30ml ?? ''),
       price50ml: String(product.price50ml ?? ''),
       price100ml: String(product.price100ml ?? ''),
       category: product.category || '',
+      categoryAr: product.categoryAr || '',
       image: product.image || '',
       stockMl: String(product.stockMl ?? 0)
     })
@@ -155,7 +156,6 @@ function Products() {
     })
   }
 
-  // Cancel editing
   const handleCancelEdit = () => {
     setEditingId(null)
     setForm(emptyForm)
@@ -163,7 +163,6 @@ function Products() {
     setSuccess('')
   }
 
-  // Delete product
   const handleDelete = async (productId, productName) => {
     const confirmed = window.confirm(
       `Are you sure you want to delete ${productName}?`
@@ -178,7 +177,7 @@ function Products() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        `https://abu-badr-parfum-2.onrender.com:///api/products/${productId}`,
+        `${API_URL}/products/${productId}`,
         {
           method: 'DELETE',
           headers: {
@@ -205,7 +204,6 @@ function Products() {
     }
   }
 
-  // Show or hide product in public shop
   const handleToggleAvailability = async (product) => {
     setTogglingId(product.id)
     setError('')
@@ -215,7 +213,7 @@ function Products() {
       const token = sessionStorage.getItem('adminToken')
 
       const response = await fetch(
-        `https://abu-badr-parfum-2.onrender.com/api/products/${product.id}`,
+        `${API_URL}/products/${product.id}`,
         {
           method: 'PUT',
           headers: {
@@ -269,7 +267,6 @@ function Products() {
         </button>
       </header>
 
-      {/* Add / Edit Form */}
       <section style={styles.formCard}>
 
         <h2 style={styles.sectionTitle}>
@@ -281,17 +278,44 @@ function Products() {
           <input
             style={styles.input}
             name="name"
-            placeholder="Product name"
+            placeholder="Product name (English)"
             value={form.name}
             onChange={handleChange}
             required
           />
 
-          <input
+          <textarea
             style={styles.input}
             name="description"
-            placeholder="Description"
+            placeholder="Description (English)"
             value={form.description}
+            onChange={handleChange}
+            rows="3"
+          />
+
+          <textarea
+            style={{ ...styles.input, direction: 'rtl' }}
+            name="descriptionAr"
+            placeholder="الوصف باللغة العربية"
+            value={form.descriptionAr}
+            onChange={handleChange}
+            rows="3"
+          />
+
+          <input
+            style={styles.input}
+            name="category"
+            placeholder="Category (English)"
+            value={form.category}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            style={{ ...styles.input, direction: 'rtl' }}
+            name="categoryAr"
+            placeholder="التصنيف باللغة العربية"
+            value={form.categoryAr}
             onChange={handleChange}
           />
 
@@ -327,15 +351,6 @@ function Products() {
             step="any"
             placeholder="100 ml price (DA)"
             value={form.price100ml}
-            onChange={handleChange}
-            required
-          />
-
-          <input
-            style={styles.input}
-            name="category"
-            placeholder="Category"
-            value={form.category}
             onChange={handleChange}
             required
           />
@@ -394,7 +409,6 @@ function Products() {
 
       </section>
 
-      {/* Products List */}
       <section style={styles.productsSection}>
 
         <div style={styles.listHeader}>
@@ -431,7 +445,13 @@ function Products() {
                 <p>50 ml: {product.price50ml ?? 'Not set'} DA</p>
                 <p>100 ml: {product.price100ml ?? 'Not set'} DA</p>
 
-                <p>Category: {product.category}</p>
+                <p>
+                  Category: {product.category}
+                </p>
+
+                <p dir="rtl" style={{ textAlign: 'left' }}>
+                  التصنيف: {product.categoryAr || 'غير محدد'}
+                </p>
 
                 <p>
                   Available mixture: {product.stockMl ?? 0} ml
@@ -457,6 +477,13 @@ function Products() {
 
                 <p style={styles.description}>
                   {product.description || 'No description'}
+                </p>
+
+                <p
+                  dir="rtl"
+                  style={{ ...styles.description, textAlign: 'right' }}
+                >
+                  {product.descriptionAr || 'لا يوجد وصف بالعربية'}
                 </p>
 
                 <div style={styles.actions}>
@@ -562,7 +589,8 @@ const styles = {
     border: '1px solid #444',
     borderRadius: '6px',
     outline: 'none',
-    minWidth: 0
+    minWidth: 0,
+    fontFamily: 'Arial, sans-serif'
   },
   primaryButton: {
     padding: '13px',

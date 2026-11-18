@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import Shop from './pages/Shop'
@@ -8,16 +9,28 @@ import Products from './pages/Products'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
+  const [language, setLanguage] = useState('en')
+
+  useEffect(() => {
+    document.documentElement.lang = language
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
+  }, [language])
+
   return (
     <BrowserRouter>
       <Routes>
-        {/* Customer storefront */}
-        <Route path="/" element={<Shop />} />
+        <Route
+          path="/"
+          element={
+            <Shop
+              language={language}
+              setLanguage={setLanguage}
+            />
+          }
+        />
 
-        {/* Admin login */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Admin dashboard */}
         <Route
           path="/admin/dashboard"
           element={
@@ -27,7 +40,6 @@ function App() {
           }
         />
 
-        {/* Product management */}
         <Route
           path="/admin/products"
           element={
@@ -37,7 +49,6 @@ function App() {
           }
         />
 
-        {/* Unknown routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

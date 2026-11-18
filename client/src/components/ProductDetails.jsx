@@ -3,8 +3,25 @@ import { useState, useEffect } from 'react'
 
 const allowedSizes = [30, 50, 100]
 
-function ProductDetails({ product, onClose, onAddToCart, cart }) {
+function ProductDetails({ product, onClose, onAddToCart, cart, language = 'en' }) {
   const [selectedSize, setSelectedSize] = useState(30)
+
+  const isArabic = language === 'ar'
+
+  const t = {
+    chooseSize: isArabic ? 'اختر حجم القارورة:' : 'Choose bottle size:',
+    availableMixture: isArabic ? 'الكمية المتوفرة:' : 'Available mixture:',
+    outOfStock: isArabic ? 'نفدت الكمية' : 'OUT OF STOCK',
+    notEnough: isArabic ? 'الكمية غير كافية لهذا الحجم' : 'NOT ENOUGH MIXTURE FOR THIS SIZE',
+    notEnoughButton: isArabic ? 'الكمية غير كافية' : 'NOT ENOUGH MIXTURE',
+    inStock: isArabic ? 'متوفر' : 'IN STOCK',
+    addToCart: isArabic ? 'أضف إلى السلة' : 'ADD TO CART',
+    priceUnavailable: isArabic ? 'السعر غير متوفر' : 'Price unavailable',
+    defaultDescription: isArabic
+      ? 'اكتشف هذا العطر الحصري من أبو بدر للعطور.'
+      : 'Discover this exclusive fragrance from Abu Badr Parfum.',
+    sizeLabel: isArabic ? 'اختر الحجم' : 'Choose size'
+  }
 
   useEffect(() => {
     setSelectedSize(30)
@@ -27,6 +44,14 @@ function ProductDetails({ product, onClose, onAddToCart, cart }) {
   const outOfStock = stockMl <= 0
   const cannotAdd = remainingMl < selectedSize
 
+  const displayedCategory = isArabic
+    ? product.categoryAr || product.category
+    : product.category
+
+  const displayedDescription = isArabic
+    ? product.descriptionAr || product.description || t.defaultDescription
+    : product.description || t.defaultDescription
+
   function handleAddToCart() {
     const added = onAddToCart(product, selectedSize)
 
@@ -36,7 +61,11 @@ function ProductDetails({ product, onClose, onAddToCart, cart }) {
   }
 
   return (
-    <div className="product-modal-overlay" onClick={onClose}>
+    <div
+      className="product-modal-overlay"
+      onClick={onClose}
+      dir={isArabic ? 'rtl' : 'ltr'}
+    >
       <div
         className="product-modal"
         onClick={event => event.stopPropagation()}
@@ -60,23 +89,26 @@ function ProductDetails({ product, onClose, onAddToCart, cart }) {
         </div>
 
         <div className="product-modal-info">
+
           <p className="product-modal-category">
-            {product.category}
+            {displayedCategory}
           </p>
 
-          <h2>{product.name}</h2>
+          {/* Perfume name always stays in English */}
+          <h2 dir="ltr" style={{ textAlign: isArabic ? 'right' : 'left' }}>
+            {product.name}
+          </h2>
 
           <p className="product-modal-description">
-            {product.description ||
-              'Discover this exclusive fragrance from Abu Badr Parfum.'}
+            {displayedDescription}
           </p>
 
-          <label>Choose bottle size:</label>
+          <label>{t.chooseSize}</label>
 
           <div
             className="size-picker modal-size-picker"
             role="group"
-            aria-label={`Choose size for ${product.name}`}
+            aria-label={`${t.sizeLabel}: ${product.name}`}
             style={{
               display: 'flex',
               gap: '8px',
@@ -136,22 +168,25 @@ function ProductDetails({ product, onClose, onAddToCart, cart }) {
           <h3 className="product-modal-price">
             {Number.isFinite(price)
               ? `${price.toLocaleString()} DZD`
-              : 'Price unavailable'}
+              : t.priceUnavailable}
           </h3>
 
           <p>
-            Available mixture: {remainingMl} ml
+            {t.availableMixture} {remainingMl} ml
           </p>
 
-          <p className={outOfStock || cannotAdd
-            ? 'stock-unavailable'
-            : 'stock-available'}
+          <p
+            className={
+              outOfStock || cannotAdd
+                ? 'stock-unavailable'
+                : 'stock-available'
+            }
           >
             {outOfStock
-              ? 'OUT OF STOCK'
+              ? t.outOfStock
               : cannotAdd
-                ? 'NOT ENOUGH MIXTURE FOR THIS SIZE'
-                : 'IN STOCK'}
+                ? t.notEnough
+                : t.inStock}
           </p>
 
           <button
@@ -164,11 +199,12 @@ function ProductDetails({ product, onClose, onAddToCart, cart }) {
             }
           >
             {outOfStock
-              ? 'OUT OF STOCK'
+              ? t.outOfStock
               : cannotAdd
-                ? 'NOT ENOUGH MIXTURE'
-                : 'ADD TO CART'}
+                ? t.notEnoughButton
+                : t.addToCart}
           </button>
+
         </div>
       </div>
     </div>

@@ -1348,3 +1348,233 @@ body::after {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* =========================
+   LANGUAGE SWITCHER
+========================= */
+
+.language-switch {
+  background: transparent;
+  color: var(--gold-light);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.language-switch:hover {
+  background: var(--gold);
+  color: #080808;
+  box-shadow: 0 0 15px rgba(201, 164, 92, 0.2);
+}
+
+.language-switch:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+/* =========================
+   ARABIC / RTL SUPPORT
+========================= */
+
+[dir="rtl"] {
+  text-align: right;
+}
+/* Arabic hero: text on the LEFT, image on the RIGHT */
+[dir="rtl"] .hero-content {
+  margin-left: 0;
+  margin-right: auto;
+  width: 58%;
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .hero-visual {
+  right: 0;
+  left: auto;
+}
+
+[dir="rtl"] .hero-eyebrow {
+  justify-content: flex-start;
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .hero-cta {
+  flex-direction: row-reverse;
+}
+
+/* =================================
+   FINAL HERO LAYOUT FIX
+   Image always RIGHT
+   Text always LEFT
+================================= */
+
+.luxury-hero {
+  direction: ltr !important;
+}
+
+.luxury-hero .hero-visual {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: auto;
+  width: 61%;
+  height: 100%;
+  z-index: -1;
+}
+
+.luxury-hero .hero-content {
+  position: relative;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+/* Arabic text direction only */
+.luxury-hero.hero-arabic .hero-content {
+  direction: rtl;
+  text-align: right;
+}
+
+/* English text direction */
+.luxury-hero.hero-english .hero-content {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .luxury-hero .hero-content {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .luxury-hero .hero-visual {
+    right: 0;
+    left: 0;
+    width: 100%;
+  }
+}
+
+
+
+
+
+
+}
+
+[dir="rtl"] .hero-eyebrow {
+  flex-direction: row-reverse;
+  letter-spacing: 0;
+}
+
+[dir="rtl"] .hero-cta {
+  flex-direction: row-reverse;
+  letter-spacing: 0;
+}
+
+[dir="rtl"] .hero-cta:hover span {
+  transform: translateX(-5px);
+}
+
+[dir="rtl"] .product-info,
+[dir="rtl"] .product-modal-info,
+[dir="rtl"] .cart-item,
+[dir="rtl"] .checkout-form {
+  text-align: right;
+}
+
+[dir="rtl"] .product-search,
+[dir="rtl"] .product-sorting {
+  direction: rtl;
+}
+
+[dir="rtl"] .cart-total {
+  text-align: left;
+}
+
+[dir="rtl"] .product-modal-close {
+  right: auto;
+  left: 15px;
+}
+
+[dir="rtl"] .checkout-form input,
+[dir="rtl"] .checkout-form select,
+[dir="rtl"] .checkout-form textarea,
+[dir="rtl"] .product-search input {
+  text-align: right;
+}
+
+[dir="rtl"] .navbar {
+  direction: rtl;
+}
+
+[dir="rtl"] .nav-links {
+  direction: rtl;
+}
+
+/* =========================
+   LANGUAGE SWITCHER RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+  .language-switch {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  [dir="rtl"] .hero-content {
+    text-align: right;
+  }
+}
+
+@media (max-width: 380px) {
+  .language-switch {
+    padding: 6px 7px;
+    font-size: 10px;
+  }
+}
+
+/* =================================
+   HERO ARABIC LAYOUT
+================================= */
+
+.luxury-hero.hero-arabic {
+  direction: ltr !important;
+}
+
+.hero-arabic .hero-content {
+  direction: rtl;
+  text-align: right;
+}
+
+.hero-arabic .hero-eyebrow,
+.hero-arabic .hero-description {
+  direction: rtl;
+  text-align: right;
+}
+
+.hero-arabic .hero-cta {
+  direction: rtl;
+}
+
+/* Keep perfume image on the right */
+.hero-arabic .hero-visual {
+  direction: ltr;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  .luxury-hero.hero-arabic {
+    direction: ltr !important;
+  }
+
+  .hero-arabic .hero-content {
+    direction: rtl;
+    text-align: right;
+  }
+}

@@ -4,9 +4,97 @@ import Navbar from '../components/Navbar'
 import Checkout from '../components/Checkout'
 import ProductDetails from '../components/ProductDetails'
 
+const API_URL = 'https://abu-badr-parfum-2.onrender.com/api'
 const allowedSizes = [30, 50, 100]
 
-function Shop() {
+const translations = {
+  en: {
+    heroEyebrow: 'THE ART OF ELEGANCE',
+    heroTitle: 'YOUR SCENT.',
+    heroTitle2: 'YOUR IDENTITY.',
+    heroDescription: 'Discover exclusive fragrances crafted for men who leave a lasting impression.',
+    explore: 'EXPLORE COLLECTION',
+    premium: 'PREMIUM QUALITY',
+    secure: 'SECURE SHOPPING',
+    delivery: 'FAST DELIVERY',
+    selection: 'OUR SELECTION',
+    featured: 'Featured Fragrances',
+    search: 'Search for a fragrance...',
+    clear: 'Clear',
+    sortBy: 'Sort by:',
+    default: 'Default',
+    lowHigh: 'Price: Low to High',
+    highLow: 'Price: High to Low',
+    nameSort: 'Name: A to Z',
+    loading: 'Loading products...',
+    noMatch: 'No fragrances match your search.',
+    unavailable: 'No fragrances are currently available.',
+    startingPrice: 'Starting price — 30 ml',
+    chooseSize: 'Choose bottle size:',
+    priceUnavailable: 'Price unavailable',
+    viewDetails: 'VIEW DETAILS',
+    outOfStock: 'OUT OF STOCK',
+    available: 'Available mixture:',
+    notEnough: 'NOT ENOUGH MIXTURE',
+    addToCart: 'ADD TO CART',
+    yourSelection: 'YOUR SELECTION',
+    cart: 'Shopping Cart',
+    emptyCart: 'Your cart is empty.',
+    size: 'Size:',
+    each: 'each',
+    subtotal: 'Subtotal:',
+    remove: 'Remove',
+    total: 'Total:',
+    thankYou: 'Thank you for your order!',
+    orderSaved: 'Your order has been successfully saved.',
+  },
+
+  ar: {
+    heroEyebrow: 'فن الأناقة',
+    heroTitle: 'عطرك.',
+    heroTitle2: 'هويتك.',
+    heroDescription: 'اكتشف عطوراً مميزة صُممت للرجل الذي يترك انطباعاً لا يُنسى.',
+    explore: 'اكتشف مجموعتنا',
+    premium: 'جودة عالية',
+    secure: 'تسوق آمن',
+    delivery: 'توصيل سريع',
+    selection: 'اختياراتنا',
+    featured: 'عطور مميزة',
+    search: 'ابحث عن عطر...',
+    clear: 'مسح',
+    sortBy: 'ترتيب حسب:',
+    default: 'الافتراضي',
+    lowHigh: 'السعر: من الأقل إلى الأعلى',
+    highLow: 'السعر: من الأعلى إلى الأقل',
+    nameSort: 'الاسم: أ إلى ي',
+    loading: 'جاري تحميل العطور...',
+    noMatch: 'لا توجد عطور تطابق بحثك.',
+    unavailable: 'لا توجد عطور متاحة حالياً.',
+    startingPrice: 'السعر يبدأ من — 30 مل',
+    chooseSize: 'اختر حجم القارورة:',
+    priceUnavailable: 'السعر غير متاح',
+    viewDetails: 'عرض التفاصيل',
+    outOfStock: 'نفد المخزون',
+    available: 'الكمية المتبقية من المزيج:',
+    notEnough: 'الكمية غير كافية',
+    addToCart: 'أضف إلى السلة',
+    yourSelection: 'اختياراتك',
+    cart: 'سلة التسوق',
+    emptyCart: 'سلة التسوق فارغة.',
+    size: 'الحجم:',
+    each: 'للوحدة',
+    subtotal: 'المجموع الفرعي:',
+    remove: 'حذف',
+    total: 'المجموع:',
+    thankYou: 'شكراً لطلبك!',
+    orderSaved: 'تم تسجيل طلبك بنجاح.',
+  },
+}
+
+function Shop({ language, setLanguage }) {
+  const t = translations[language] || translations.en
+  const isArabic = language === 'ar'
+
   const [products, setProducts] = useState([])
 
   const [cart, setCart] = useState(() => {
@@ -46,8 +134,7 @@ function Shop() {
   }, [cart])
 
   useEffect(() => {
-    
-    fetch('https://abu-badr-parfum-2.onrender.com/api/products')
+    fetch(`${API_URL}/products`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch products')
@@ -75,10 +162,13 @@ function Shop() {
     switch (sortOption) {
       case 'price-low':
         return Number(a.price30ml) - Number(b.price30ml)
+
       case 'price-high':
         return Number(b.price30ml) - Number(a.price30ml)
+
       case 'name':
         return a.name.localeCompare(b.name)
+
       default:
         return 0
     }
@@ -87,6 +177,7 @@ function Shop() {
   function getUsedMl(productId, excludedSize = null) {
     return cart.reduce((total, item) => {
       if (item.id !== productId) return total
+
       if (excludedSize !== null && item.sizeMl === excludedSize) {
         return total
       }
@@ -148,6 +239,7 @@ function Shop() {
     if (!item) return
 
     const otherSizesUsed = getUsedMl(id, sizeMl)
+
     const availableForThisSize = Math.max(
       0,
       Number(item.stockMl) - otherSizesUsed
@@ -196,8 +288,8 @@ function Shop() {
     setOrderError('')
 
     try {
-const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders', {
-          method: 'POST',
+      const response = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -234,120 +326,153 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
   }
 
   return (
-    <>
-      <Navbar cartCount={cartCount} />
+    <div dir={isArabic ? 'rtl' : 'ltr'}>
 
-      {/* LUXURY HERO */}
-      <section className="luxury-hero">
-        <div className="hero-content">
+      <Navbar
+        cartCount={cartCount}
+        language={language}
+        setLanguage={setLanguage}
+      />
+
+      {/* HERO */}
+            {/* HERO */}
+      <section
+        className={`luxury-hero ${isArabic ? 'hero-arabic' : 'hero-english'}`}
+        dir="ltr"
+      >
+        {/* TEXT — ALWAYS ON THE LEFT */}
+        <div
+          className="hero-content"
+          dir={isArabic ? 'rtl' : 'ltr'}
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            width: '58%',
+            maxWidth: '720px',
+            marginLeft: 0,
+            marginRight: 'auto',
+            textAlign: isArabic ? 'right' : 'left'
+          }}
+        >
           <p className="hero-eyebrow">
             <span></span>
-            THE ART OF ELEGANCE
+            {t.heroEyebrow}
             <span></span>
           </p>
 
           <h1>
-            YOUR SCENT.
+            {t.heroTitle}
             <br />
-            <span>YOUR IDENTITY.</span>
+            <span>{t.heroTitle2}</span>
           </h1>
 
           <p className="hero-description">
-            Discover exclusive fragrances crafted
-            <br className="desktop-break" />
-            for men who leave a lasting impression.
+            {t.heroDescription}
           </p>
 
           <button
             className="hero-cta"
             onClick={exploreCollection}
           >
-            EXPLORE COLLECTION
-            <span>→</span>
+            {t.explore}
+            <span>{isArabic ? '←' : '→'}</span>
           </button>
         </div>
 
+        {/* IMAGE — ALWAYS ON THE RIGHT */}
         <div className="hero-visual">
           <img
             src="/images/abu-badr-hero-perfume.jpg"
-            alt="Abu Badr luxury perfume bottle surrounded by golden smoke"
+            alt="Abu Badr luxury perfume bottle"
           />
         </div>
 
         <div className="hero-bottom-glow"></div>
       </section>
 
-      {/* BENEFITS STRIP */}
+      {/* BENEFITS */}
       <section className="hero-benefits">
+
         <div className="benefit-item">
           <span className="benefit-icon">◇</span>
-          <span>PREMIUM QUALITY</span>
+          <span>{t.premium}</span>
         </div>
 
         <div className="benefit-divider"></div>
 
         <div className="benefit-item">
           <span className="benefit-icon">♢</span>
-          <span>SECURE SHOPPING</span>
+          <span>{t.secure}</span>
         </div>
 
         <div className="benefit-divider"></div>
 
         <div className="benefit-item">
           <span className="benefit-icon">⇢</span>
-          <span>FAST DELIVERY</span>
+          <span>{t.delivery}</span>
         </div>
+
       </section>
 
       {/* PRODUCTS */}
       <section className="products-section" id="products">
-        <p className="subtitle">OUR SELECTION</p>
-        <h2>Featured Fragrances</h2>
+
+        <p className="subtitle">{t.selection}</p>
+        <h2>{t.featured}</h2>
 
         <div className="product-search">
+
           <input
             type="text"
-            placeholder="Search for a fragrance..."
+            placeholder={t.search}
             value={searchTerm}
             onChange={event => setSearchTerm(event.target.value)}
           />
 
           {searchTerm && (
             <button onClick={() => setSearchTerm('')}>
-              Clear
+              {t.clear}
             </button>
           )}
+
         </div>
 
         <div className="product-sorting">
-          <label htmlFor="sort-products">Sort by:</label>
+
+          <label htmlFor="sort-products">
+            {t.sortBy}
+          </label>
 
           <select
             id="sort-products"
             value={sortOption}
             onChange={event => setSortOption(event.target.value)}
           >
-            <option value="default">Default</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="name">Name: A to Z</option>
+            <option value="default">{t.default}</option>
+            <option value="price-low">{t.lowHigh}</option>
+            <option value="price-high">{t.highLow}</option>
+            <option value="name">{t.nameSort}</option>
           </select>
+
         </div>
 
-        {loading && <p>Loading products...</p>}
+        {loading && <p>{t.loading}</p>}
 
         {error && <p className="error-message">{error}</p>}
 
         {!loading && !error && (
           sortedProducts.length === 0 ? (
+
             <p className="empty-cart">
-              {searchTerm
-                ? 'No fragrances match your search.'
-                : 'No fragrances are currently available.'}
+              {searchTerm ? t.noMatch : t.unavailable}
             </p>
+
           ) : (
+
             <div className="products-grid">
+
               {sortedProducts.map((product, index) => {
+
                 const selectedSize = Number(
                   selectedSizes[product.id] || 30
                 )
@@ -364,8 +489,11 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                 const cannotAdd = remainingMl < selectedSize
 
                 return (
+
                   <div className="product-card" key={product.id}>
+
                     <div className={`product-image bottle-${(index % 4) + 1}`}>
+
                       {product.image ? (
                         <>
                           <img
@@ -390,18 +518,21 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                           <span>AB</span>
                         </div>
                       )}
+
                     </div>
 
                     <div className="product-info">
-                      <p>{product.category}</p>
+
+                      <p>{isArabic ? (product.categoryAr || product.category) : product.category}</p>
                       <h3>{product.name}</h3>
 
                       <span className="price">
                         {Number(product.price30ml).toLocaleString()} DZD
                       </span>
-                      <p>Starting price — 30 ml</p>
 
-                      <label>Choose bottle size:</label>
+                      <p>{t.startingPrice}</p>
+
+                      <label>{t.chooseSize}</label>
 
                       <div
                         className="size-picker"
@@ -414,13 +545,17 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                           flexWrap: 'wrap'
                         }}
                       >
+
                         {allowedSizes.map(size => {
+
                           const isSelected = selectedSize === size
+
                           const sizePrice = Number(
                             product[`price${size}ml`]
                           )
 
                           return (
+
                             <button
                               key={size}
                               type="button"
@@ -449,6 +584,7 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                                 fontWeight: isSelected ? '700' : '500'
                               }}
                             >
+
                               <span style={{ display: 'block' }}>
                                 {size} ml
                               </span>
@@ -465,28 +601,32 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                                   ? `${sizePrice.toLocaleString()} DA`
                                   : 'N/A'}
                               </span>
+
                             </button>
                           )
                         })}
+
                       </div>
 
                       <p className="price">
                         {Number.isFinite(price)
                           ? `${price.toLocaleString()} DZD`
-                          : 'Price unavailable'}
+                          : t.priceUnavailable}
                       </p>
 
                       <button
                         className="details-button"
                         onClick={() => setSelectedProduct(product)}
                       >
-                        VIEW DETAILS
+                        {t.viewDetails}
                       </button>
 
-                      {outOfStock && <p>OUT OF STOCK</p>}
+                      {outOfStock && <p>{t.outOfStock}</p>}
 
                       {!outOfStock && (
-                        <p>Available mixture: {remainingMl} ml</p>
+                        <p>
+                          {t.available} {remainingMl} ml
+                        </p>
                       )}
 
                       <button
@@ -499,37 +639,48 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                         }
                       >
                         {outOfStock
-                          ? 'OUT OF STOCK'
+                          ? t.outOfStock
                           : cannotAdd
-                            ? 'NOT ENOUGH MIXTURE'
-                            : 'ADD TO CART'}
+                            ? t.notEnough
+                            : t.addToCart}
                       </button>
+
                     </div>
                   </div>
                 )
               })}
+
             </div>
           )
         )}
+
       </section>
 
+      {/* PRODUCT DETAILS */}
       <ProductDetails
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={addToCart}
         cart={cart}
+        language={language}
       />
 
       {/* CART */}
       <section className="cart-section" id="cart">
-        <p className="subtitle">YOUR SELECTION</p>
-        <h2>Shopping Cart</h2>
+
+        <p className="subtitle">{t.yourSelection}</p>
+        <h2>{t.cart}</h2>
 
         {cart.length === 0 ? (
-          <p className="empty-cart">Your cart is empty.</p>
+
+          <p className="empty-cart">{t.emptyCart}</p>
+
         ) : (
+
           <>
+
             {cart.map(item => {
+
               const otherSizesUsed = getUsedMl(item.id, item.sizeMl)
 
               const maxQuantity = Math.floor(
@@ -538,22 +689,30 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
               )
 
               return (
+
                 <div
                   className="cart-item"
                   key={`${item.id}-${item.sizeMl}`}
                 >
+
                   <div>
                     <h3>{item.name}</h3>
-                    <p>Size: {item.sizeMl} ml</p>
-                    <p>{Number(item.price).toLocaleString()} DZD each</p>
+
                     <p>
-                      Subtotal: {(
-                        item.price * item.quantity
-                      ).toLocaleString()} DZD
+                      {t.size} {item.sizeMl} ml
+                    </p>
+
+                    <p>
+                      {Number(item.price).toLocaleString()} DZD {t.each}
+                    </p>
+
+                    <p>
+                      {t.subtotal} {(item.price * item.quantity).toLocaleString()} DZD
                     </p>
                   </div>
 
                   <div className="quantity-controls">
+
                     <button
                       onClick={() =>
                         updateQuantity(item.id, item.sizeMl, -1)
@@ -572,6 +731,7 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                     >
                       +
                     </button>
+
                   </div>
 
                   <button
@@ -580,40 +740,51 @@ const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders'
                       removeFromCart(item.id, item.sizeMl)
                     }
                   >
-                    Remove
+                    {t.remove}
                   </button>
+
                 </div>
               )
             })}
 
             <div className="cart-total">
-              <h3>Total: {total.toLocaleString()} DZD</h3>
+              <h3>
+                {t.total} {total.toLocaleString()} DZD
+              </h3>
             </div>
+
           </>
         )}
+
       </section>
 
       {/* CHECKOUT */}
       {orderPlaced ? (
+
         <section className="order-success">
-          <h2>Thank you for your order!</h2>
-          <p>Your order has been successfully saved.</p>
+          <h2>{t.thankYou}</h2>
+          <p>{t.orderSaved}</p>
         </section>
+
       ) : (
+
         <>
           {orderError && (
             <p className="error-message">{orderError}</p>
           )}
 
-          <Checkout
-            cart={cart}
-            total={total}
-            onPlaceOrder={handlePlaceOrder}
-            isSubmitting={isSubmitting}
-          />
+         <Checkout
+  cart={cart}
+  total={total}
+  onPlaceOrder={handlePlaceOrder}
+  isSubmitting={isSubmitting}
+  language={language}
+/>    
         </>
+
       )}
-    </>
+
+    </div>
   )
 }
 

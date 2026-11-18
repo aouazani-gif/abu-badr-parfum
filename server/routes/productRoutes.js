@@ -8,7 +8,6 @@ const Product = require('../models/Product')
 
 const priceFields = ['price30ml', 'price50ml', 'price100ml']
 
-// Validate prices and mixture stock
 function validNumber(value) {
   return Number.isFinite(Number(value)) && Number(value) >= 0
 }
@@ -31,10 +30,12 @@ router.get('/', async (req, res) => {
       id: product._id,
       name: product.name,
       description: product.description,
+      descriptionAr: product.descriptionAr,
       price30ml: product.price30ml,
       price50ml: product.price50ml,
       price100ml: product.price100ml,
       category: product.category,
+      categoryAr: product.categoryAr,
       image: product.image,
       stockMl: product.stockMl,
       isAvailable: product.isAvailable
@@ -74,10 +75,12 @@ router.post('/', protectAdmin, async (req, res) => {
     const {
       name,
       description,
+      descriptionAr,
       price30ml,
       price50ml,
       price100ml,
       category,
+      categoryAr,
       image,
       stockMl
     } = req.body
@@ -99,14 +102,15 @@ router.post('/', protectAdmin, async (req, res) => {
       })
     }
 
-    // New products are hidden until the admin activates them
     const product = await Product.create({
       name: name.trim(),
       description: description || '',
+      descriptionAr: descriptionAr || '',
       price30ml: Number(price30ml),
       price50ml: Number(price50ml),
       price100ml: Number(price100ml),
       category: category.trim(),
+      categoryAr: categoryAr || '',
       image: image || '',
       stockMl: Number(stockMl),
       isAvailable: false
@@ -165,7 +169,7 @@ router.put('/:id', protectAdmin, async (req, res) => {
     }
 
     if (body.name !== undefined) {
-      if (!body.name.trim()) {
+      if (typeof body.name !== 'string' || !body.name.trim()) {
         return res.status(400).json({
           message: 'Product name cannot be empty'
         })
@@ -175,7 +179,7 @@ router.put('/:id', protectAdmin, async (req, res) => {
     }
 
     if (body.category !== undefined) {
-      if (!body.category.trim()) {
+      if (typeof body.category !== 'string' || !body.category.trim()) {
         return res.status(400).json({
           message: 'Category cannot be empty'
         })
@@ -184,8 +188,16 @@ router.put('/:id', protectAdmin, async (req, res) => {
       product.category = body.category.trim()
     }
 
+    if (body.categoryAr !== undefined) {
+      product.categoryAr = body.categoryAr
+    }
+
     if (body.description !== undefined) {
       product.description = body.description
+    }
+
+    if (body.descriptionAr !== undefined) {
+      product.descriptionAr = body.descriptionAr
     }
 
     if (body.image !== undefined) {

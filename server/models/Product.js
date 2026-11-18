@@ -13,6 +13,11 @@ const productSchema = new mongoose.Schema({
     default: ''
   },
 
+  descriptionAr: {
+    type: String,
+    default: ''
+  },
+
   price30ml: {
     type: Number,
     required: true,
@@ -34,6 +39,11 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true
+  },
+
+  categoryAr: {
+    type: String,
+    default: ''
   },
 
   image: {
