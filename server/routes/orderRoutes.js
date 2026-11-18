@@ -18,10 +18,10 @@ router.post('/', async (req, res) => {
     !customer?.fullName?.trim() ||
     !customer?.phone?.trim() ||
     !customer?.wilaya?.trim() ||
-    !customer?.address?.trim()
+    !customer?.commune?.trim()
   ) {
     return res.status(400).json({
-      message: 'All customer fields are required'
+      message: 'Full name, phone, wilaya and commune are required'
     })
   }
 
@@ -123,7 +123,8 @@ router.post('/', async (req, res) => {
             fullName: customer.fullName.trim(),
             phone: customer.phone.trim(),
             wilaya: customer.wilaya.trim(),
-            address: customer.address.trim()
+            commune: customer.commune.trim(),
+            address: customer.address?.trim() || ''
           },
           products: orderProducts,
           total,

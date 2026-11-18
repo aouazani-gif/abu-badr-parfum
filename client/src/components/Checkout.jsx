@@ -1,87 +1,27 @@
 
 import { useState } from 'react'
+import dz from 'geoalgeria'
 
-const wilayas = [
-  '01 - Adrar',
-  '02 - Chlef',
-  '03 - Laghouat',
-  '04 - Oum El Bouaghi',
-  '05 - Batna',
-  '06 - Béjaïa',
-  '07 - Biskra',
-  '08 - Béchar',
-  '09 - Blida',
-  '10 - Bouira',
-  '11 - Tamanrasset',
-  '12 - Tébessa',
-  '13 - Tlemcen',
-  '14 - Tiaret',
-  '15 - Tizi Ouzou',
-  '16 - Alger',
-  '17 - Djelfa',
-  '18 - Jijel',
-  '19 - Sétif',
-  '20 - Saïda',
-  '21 - Skikda',
-  '22 - Sidi Bel Abbès',
-  '23 - Annaba',
-  '24 - Guelma',
-  '25 - Constantine',
-  '26 - Médéa',
-  '27 - Mostaganem',
-  '28 - M’Sila',
-  '29 - Mascara',
-  '30 - Ouargla',
-  '31 - Oran',
-  '32 - El Bayadh',
-  '33 - Illizi',
-  '34 - Bordj Bou Arréridj',
-  '35 - Boumerdès',
-  '36 - El Tarf',
-  '37 - Tindouf',
-  '38 - Tissemsilt',
-  '39 - El Oued',
-  '40 - Khenchela',
-  '41 - Souk Ahras',
-  '42 - Tipaza',
-  '43 - Mila',
-  '44 - Aïn Defla',
-  '45 - Naâma',
-  '46 - Aïn Témouchent',
-  '47 - Ghardaïa',
-  '48 - Relizane',
-  '49 - Timimoun',
-  '50 - Bordj Badji Mokhtar',
-  '51 - Ouled Djellal',
-  '52 - Béni Abbès',
-  '53 - In Salah',
-  '54 - In Guezzam',
-  '55 - Touggourt',
-  '56 - Djanet',
-  '57 - El M’Ghair',
-  '58 - El Meniaa',
-  '59 - Aflou',
-  '60 - Barika',
-  '61 - Ksar Chellala',
-  '62 - Messaad',
-  '63 - Aïn Oussera',
-  '64 - Bou Saâda',
-  '65 - El Abiodh Sidi Cheikh',
-  '66 - El Kantara',
-  '67 - Bir El Ater',
-  '68 - Ksar El Boukhari',
-  '69 - Sidi Ali'
-]
+
 
 function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
     wilaya: '',
+    commune: '',
     address: '',
   })
 
   const [errors, setErrors] = useState({})
+
+  const selectedWilaya = dz.wilayas.find(
+    wilaya => String(wilaya.code) === form.wilaya
+  )
+
+  const communes = form.wilaya
+    ? dz.getCommunesByWilaya(Number(form.wilaya))
+    : []
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -89,11 +29,13 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
     setForm(currentForm => ({
       ...currentForm,
       [name]: value,
+      ...(name === 'wilaya' ? { commune: '' } : {}),
     }))
 
     setErrors(currentErrors => ({
       ...currentErrors,
       [name]: '',
+      ...(name === 'wilaya' ? { commune: '' } : {}),
     }))
   }
 
@@ -119,9 +61,8 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
       newErrors.wilaya = 'Please select your wilaya.'
     }
 
-    if (form.address.trim().length < 5) {
-      newErrors.address =
-        'Please enter a complete delivery address.'
+    if (!form.commune) {
+      newErrors.commune = 'Please select your commune.'
     }
 
     setErrors(newErrors)
@@ -133,14 +74,14 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
     e.preventDefault()
 
     if (isSubmitting) return
-
     if (!validateForm()) return
 
     onPlaceOrder({
       customer: {
         fullName: form.fullName.trim(),
         phone: form.phone.trim(),
-        wilaya: form.wilaya,
+        wilaya: `${String(selectedWilaya.code).padStart(2, '0')} - ${selectedWilaya.name_fr}`,
+        commune: form.commune,
         address: form.address.trim(),
       },
       products: cart,
@@ -201,9 +142,9 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
           >
             <option value="">Select your Wilaya</option>
 
-            {wilayas.map(wilaya => (
-              <option key={wilaya} value={wilaya}>
-                {wilaya}
+            {dz.wilayas.map(wilaya => (
+              <option key={wilaya.code} value={String(wilaya.code)}>
+                {String(wilaya.code).padStart(2, '0')} - {wilaya.name_fr}
               </option>
             ))}
           </select>
@@ -214,20 +155,43 @@ function Checkout({ cart, total, onPlaceOrder, isSubmitting }) {
         </div>
 
         <div className="checkout-field">
-          <textarea
-            name="address"
-            placeholder="Full Delivery Address"
-            value={form.address}
+          <select
+            name="commune"
+            value={form.commune}
             onChange={handleChange}
             required
-            minLength={5}
+            disabled={isSubmitting || !form.wilaya}
+          >
+            <option value="">
+              {form.wilaya
+                ? 'Select your Commune'
+                : 'Select a Wilaya first'}
+            </option>
+
+            {communes.map(commune => (
+              <option
+                key={commune.code_commune}
+                value={commune.name_fr}
+              >
+                {commune.name_fr}
+              </option>
+            ))}
+          </select>
+
+          {errors.commune && (
+            <p className="error-message">{errors.commune}</p>
+          )}
+        </div>
+
+        <div className="checkout-field">
+          <textarea
+            name="address"
+            placeholder="Detailed Delivery Address (Optional)"
+            value={form.address}
+            onChange={handleChange}
             maxLength={300}
             disabled={isSubmitting}
           />
-
-          {errors.address && (
-            <p className="error-message">{errors.address}</p>
-          )}
         </div>
 
         <div className="payment-info">

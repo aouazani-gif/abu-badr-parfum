@@ -144,7 +144,11 @@ function AdminDashboard() {
               <p>Customer: {order.customer.fullName}</p>
               <p>Phone: {order.customer.phone}</p>
               <p>Wilaya: {order.customer.wilaya}</p>
-              <p>Address: {order.customer.address}</p>
+              <p>Commune: {order.customer.commune || 'Not provided (legacy order)'}</p>
+              <p>
+                Detailed Address:{' '}
+                {order.customer.address?.trim() || 'Not provided'}
+              </p>
 
               <h4>Products:</h4>
 

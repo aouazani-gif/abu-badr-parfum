@@ -16,9 +16,13 @@ const orderSchema = new mongoose.Schema({
       type: String,
       required: true
     },
-    address: {
+    commune: {
       type: String,
       required: true
+    },
+    address: {
+      type: String,
+      default: ''
     }
   },
 
