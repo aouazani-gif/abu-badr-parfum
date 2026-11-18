@@ -5,7 +5,7 @@ import Checkout from '../components/Checkout'
 import ProductDetails from '../components/ProductDetails'
 
 const allowedSizes = [30, 50, 100]
-const API_URL = 'http://localhost:5000/api'
+
 function Shop() {
   const [products, setProducts] = useState([])
 
@@ -46,7 +46,8 @@ function Shop() {
   }, [cart])
 
   useEffect(() => {
-    fetch(`${API_URL}/products`)
+    
+    fetch('https://abu-badr-parfum-2.onrender.com/api/products')
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch products')
@@ -195,7 +196,7 @@ function Shop() {
     setOrderError('')
 
     try {
-const response = await fetch(`${API_URL}/orders`, {
+const response = await fetch('https://abu-badr-parfum-2.onrender.com/api/orders', {
           method: 'POST',
         headers: {
           'Content-Type': 'application/json'
