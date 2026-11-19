@@ -1706,3 +1706,83 @@ body::after {
     font-size: 14px;
   }
 }
+@media (max-width: 700px) {
+  .product-image {
+    height: 130px;
+  }
+
+  .product-info {
+    padding: 10px;
+  }
+
+  .product-info h3 {
+    font-size: 17px;
+    margin: 8px 0;
+  }
+
+  .product-info p {
+    font-size: 14px;
+    margin: 8px 0;
+  }
+
+  .product-card button {
+    padding: 10px 6px;
+    min-height: 45px;
+    font-size: 14px;
+  }
+
+  .product-card {
+    gap: 8px;
+  }
+}
+
+/* Compact product cards on mobile */
+@media (max-width: 700px) {
+  .product-image {
+    height: 130px;
+  }
+
+  .product-info {
+    padding: 12px 10px;
+  }
+
+  .product-info p {
+    margin: 7px 0;
+    font-size: 14px;
+  }
+
+  .product-info h3 {
+    font-size: 17px;
+    margin: 8px 0;
+  }
+
+  .product-info .price {
+    font-size: 18px;
+  }
+
+  .size-picker {
+    flex-wrap: nowrap !important;
+    gap: 5px !important;
+    margin: 8px 0 !important;
+  }
+
+  .size-picker .size-option {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    padding: 8px 2px !important;
+    font-size: 13px;
+  }
+
+  .size-picker .size-option span {
+    font-size: 12px;
+  }
+
+  .details-button,
+  .add-button {
+    min-height: 42px;
+    padding: 9px 6px;
+    font-size: 13px;
+    margin-top: 7px;
+  }
+}
