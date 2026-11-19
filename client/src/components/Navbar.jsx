@@ -1,6 +1,11 @@
 
+import { useState } from 'react'
+
 function Navbar({ cartCount, language, setLanguage }) {
   const isArabic = language === 'ar'
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const closeMenu = () => setMenuOpen(false)
 
   return (
     <nav className="navbar">
@@ -9,6 +14,7 @@ function Navbar({ cartCount, language, setLanguage }) {
         href="#"
         className="navbar-brand"
         aria-label="Abu Badr Parfum Home"
+        onClick={closeMenu}
       >
         <img
           src="/abu-badr-logo.jpg"
@@ -17,22 +23,34 @@ function Navbar({ cartCount, language, setLanguage }) {
         />
       </a>
 
-      <ul className="nav-links">
+      <button
+        type="button"
+        className="mobile-menu-toggle"
+        onClick={() => setMenuOpen(!menuOpen)}
+        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        aria-expanded={menuOpen}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      <ul className={`nav-links ${menuOpen ? 'is-open' : ''}`}>
 
         <li>
-          <a href="#">
+          <a href="#" onClick={closeMenu}>
             {isArabic ? 'الرئيسية' : 'Home'}
           </a>
         </li>
 
         <li>
-          <a href="#products">
+          <a href="#products" onClick={closeMenu}>
             {isArabic ? 'العطور' : 'Perfumes'}
           </a>
         </li>
 
         <li>
-          <a href="#cart">
+          <a href="#cart" onClick={closeMenu}>
             {isArabic
               ? `السلة (${cartCount})`
               : `Cart (${cartCount})`}
@@ -42,7 +60,10 @@ function Navbar({ cartCount, language, setLanguage }) {
         <li>
           <button
             type="button"
-            onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
+            onClick={() => {
+              setLanguage(isArabic ? 'en' : 'ar')
+              closeMenu()
+            }}
             className="language-switch"
             aria-label={isArabic ? 'Switch to English' : 'التبديل إلى العربية'}
           >
