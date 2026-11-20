@@ -56,7 +56,15 @@ function Navbar({ cartCount, language, setLanguage }) {
               : `Cart (${cartCount})`}
           </a>
         </li>
-
+<li>
+  <a
+    href="https://www.instagram.com/abubadr_parfum/"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {isArabic ? 'تواصل معنا' : 'Contact Us'}
+  </a>
+</li>
         <li>
           <button
             type="button"
@@ -64,6 +72,7 @@ function Navbar({ cartCount, language, setLanguage }) {
               setLanguage(isArabic ? 'en' : 'ar')
               closeMenu()
             }}
+
             className="language-switch"
             aria-label={isArabic ? 'Switch to English' : 'التبديل إلى العربية'}
           >
